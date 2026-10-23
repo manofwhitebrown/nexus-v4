@@ -1,0 +1,7 @@
+node_modules/
+android/build/
+android/build-aab/
+*.jks
+*.p12
+release.keystore
+android/keystore.properties
