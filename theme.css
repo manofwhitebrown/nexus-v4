@@ -1,0 +1,216 @@
+/* Nexus theme: graphite. Monochrome to match the logo, loaded after index.html's inline CSS.
+   Rules of thumb: hairline borders instead of shadows, small corner radius, tonal gradients only,
+   translucent grey for secondary buttons, one solid light button per screen. Default is dark. */
+:root{
+  --bg:#0D0D0E;--s:#161617;--ink:#ECECEA;--mu:#9A9A9F;--ln:rgba(255,255,255,.11);
+  --ac:#ECECEA;--on:#0D0D0E;--lk:#C8C8CC;--dg:#E8847C;--roy:#0D0D0E;
+  --tr:rgba(255,255,255,.07);--tr2:rgba(255,255,255,.13);
+  --g1:rgba(13,13,14,.84);--g2:rgba(22,22,24,.97);--wash:rgba(255,255,255,.05);
+  --pa:#F6F6F4;--pb:#D4D4D1;
+  --na:#2E2E32;--nb:#18181A;--nt:#F2F2F0;
+  --r:8px;
+  --serif:"Familjen Grotesk","Noto Sans Devanagari","Noto Sans Telugu",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;
+  color-scheme:dark}
+:root[data-theme="dark"]{
+  --bg:#0D0D0E;--s:#161617;--ink:#ECECEA;--mu:#9A9A9F;--ln:rgba(255,255,255,.11);
+  --ac:#ECECEA;--on:#0D0D0E;--lk:#C8C8CC;--dg:#E8847C;--roy:#0D0D0E;
+  --tr:rgba(255,255,255,.07);--tr2:rgba(255,255,255,.13);
+  --g1:rgba(13,13,14,.84);--g2:rgba(22,22,24,.97);--wash:rgba(255,255,255,.05);
+  --pa:#F6F6F4;--pb:#D4D4D1;--na:#2E2E32;--nb:#18181A;--nt:#F2F2F0;color-scheme:dark}
+:root[data-theme="light"]{
+  --bg:#E9E8E4;--s:#F3F2EF;--ink:#141415;--mu:#5C5C61;--ln:rgba(0,0,0,.13);
+  --ac:#141415;--on:#F3F2EF;--lk:#2E2E32;--dg:#B3261E;--roy:#141415;
+  --tr:rgba(0,0,0,.05);--tr2:rgba(0,0,0,.10);
+  --g1:rgba(233,232,228,.86);--g2:rgba(243,242,239,.97);--wash:rgba(255,255,255,.6);
+  --pa:#2E2E32;--pb:#141415;--na:#2E2E32;--nb:#151516;--nt:#F3F2EF;color-scheme:light}
+
+body{background:var(--bg) linear-gradient(180deg,var(--wash),transparent 420px) no-repeat}
+::selection{background:var(--tr2)}
+a{color:var(--lk);text-underline-offset:3px}
+
+/* Type */
+h1{font-size:34px;line-height:1.08;font-weight:700;letter-spacing:-.03em}
+h2{font-weight:700;letter-spacing:-.01em}
+#m>h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu);font-weight:600;margin-top:34px}
+
+/* Header with the mark */
+header{border-bottom:1px solid var(--ln)}
+.hd{display:flex;align-items:center;gap:8px}
+.mk{flex:none;width:44px;height:44px;margin-left:-10px;display:grid;place-items:center;border:0;background:none;color:var(--ink)}
+.mk svg{width:21px;height:24px;display:block}
+.hd input{flex:1;min-width:0;background:var(--tr);border-color:transparent;border-radius:var(--r)}
+.hd input:focus{border-color:var(--ink)}
+
+/* Surfaces */
+input,select,textarea{border:1px solid var(--ln);border-radius:var(--r);background:var(--s)}
+.card{border:1px solid var(--ln);border-radius:var(--r);background:var(--s)}
+.sk{background:var(--tr2);border-radius:var(--r);opacity:1}
+.ck i{border-width:1.5px;border-radius:5px}
+
+/* Buttons: translucent grey by default, one solid light/dark primary */
+.btn{border:1px solid var(--ln);border-radius:var(--r);background:var(--tr);color:var(--ink)}
+.btn:active{background:var(--tr2)}
+.btn.p,.fab{background:linear-gradient(180deg,var(--pa),var(--pb));border-color:transparent;color:var(--on)}
+.btn.d{background:var(--tr);border-color:color-mix(in srgb,var(--dg) 50%,transparent);color:var(--dg)}
+.fab{border:0;border-radius:var(--r)}
+.chip{border-radius:6px;border-color:transparent;background:var(--tr)}
+
+/* "Now" card: graphite gradient, hairline edge, no outer shadow */
+.now{border:1px solid rgba(255,255,255,.09);border-radius:12px;color:var(--nt);background:linear-gradient(160deg,var(--na),var(--nb));box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
+.now>p:first-child{color:var(--nt);opacity:.6;letter-spacing:.14em}
+.now .t{font-size:36px;letter-spacing:-.03em;line-height:1.08}
+.now .t.s{font-size:26px}
+.now .btn{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.16);color:var(--nt)}
+.now .btn:active{background:rgba(255,255,255,.18)}
+.now .btn.l{background:linear-gradient(180deg,#F6F6F4,#D6D6D3);border-color:transparent;color:#111}
+
+/* Navigation: tonal pill instead of a coloured stripe */
+nav{background:var(--g1);border-top:1px solid var(--ln)}
+nav div{padding:0 6px}
+nav button{margin:8px 3px;height:44px;border-radius:var(--r)}
+nav button[aria-current=page]{box-shadow:none;background:var(--tr2);color:var(--ink)}
+
+/* Sheets, toast, focus screen */
+dialog{border-radius:14px 14px 0 0;background:var(--g2);border-top:1px solid var(--ln)}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+#toast{border-radius:var(--r)}
+#fx{background:linear-gradient(180deg,#1C1C1F,#09090A);color:#F2F2F0}
+#fx .btn{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.16);color:#F2F2F0}
+#fx .btn.l{background:linear-gradient(180deg,#F6F6F4,#D6D6D3);border-color:transparent;color:#111}
+
+/* Optional-section disclosure (Ask Nexus) */
+summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600;color:var(--ink)}
+details[open]>summary{margin-bottom:6px}
+
+/* Accents (Graphite is the default and needs no rule) */
+:root[data-accent=steel][data-theme=dark]{--ac:#9DB4D6;--pa:#B9CBE5;--pb:#8CA6CC;--on:#0C1420}
+:root[data-accent=steel][data-theme=light]{--ac:#2F4B73;--pa:#3D5E8C;--pb:#2A4466;--on:#F3F2EF}
+:root[data-accent=sage][data-theme=dark]{--ac:#A5BFA0;--pa:#BFD3BB;--pb:#93AE8E;--on:#101810}
+:root[data-accent=sage][data-theme=light]{--ac:#3F5E3B;--pa:#4D7048;--pb:#36512F;--on:#F3F2EF}
+:root[data-accent=clay][data-theme=dark]{--ac:#D6A58C;--pa:#E5BDA9;--pb:#C99478;--on:#201008}
+:root[data-accent=clay][data-theme=light]{--ac:#8A4B2D;--pa:#A05C3A;--pb:#7A3F24;--on:#F3F2EF}
+/* Text size */
+:root[data-fs=s] body{zoom:.92}
+:root[data-fs=l] body{zoom:1.12}
+html{overscroll-behavior-y:contain}
+/* Recap */
+.rg{width:132px;height:132px;border-radius:50%;margin:16px auto;display:grid;place-content:center;text-align:center;position:relative;background:conic-gradient(var(--ink) calc(var(--p)*1%),var(--tr2) 0)}
+.rg::before{content:"";position:absolute;inset:10px;border-radius:50%;background:var(--g2)}
+.rg b,.rg small{position:relative;display:block}.rg b{font-size:28px}
+.bars{display:flex;gap:8px;align-items:flex-end;height:96px}
+.bars div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px}
+.bars i{width:100%;background:var(--ink);opacity:.85;border-radius:3px 3px 0 0}
+b.dn{text-decoration:line-through;opacity:.6}
+
+/* ===== v6: flat surfaces, phone-sized type, laptop layout ===== */
+:root{--r:6px}
+/* Flat: no gradients, no blur, no inset shadows */
+body{background:var(--bg)}
+header,nav{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--bg)}
+dialog{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--s)}
+.btn.p,.fab,.now .btn.l,#fx .btn.l{background:var(--pa)}
+.now{background:var(--na);box-shadow:none}
+#fx{background:#101012}
+.chip{border-radius:var(--r)}
+
+/* Phone type scale. Inputs stay at 16px so iOS does not zoom on focus. */
+body{font-size:15px;line-height:1.5}
+header,main{padding-left:16px;padding-right:16px}
+h1{font-size:26px;margin-top:14px}
+h2{font-size:18px}
+#m>h2{font-size:11.5px}
+small{font-size:13px}
+input,select,textarea{font-size:16px;min-height:44px}
+.btn{min-height:44px;padding:0 16px;font-size:15px}
+.chip{min-height:38px;padding:0 13px;font-size:14px}
+.now{padding:18px}
+.now .t{font-size:28px}.now .t.s{font-size:21px}
+.fab{min-height:46px;padding:0 18px;font-size:15px}
+nav button{font-size:12.5px}
+#fx .tm{font-size:64px}
+.fl{margin:8px 0}.fl .row{align-items:center}.fl .btn{min-height:36px;padding:0 12px;font-size:13px}
+
+/* Add-task row */
+#qa{display:grid!important;grid-template-columns:1fr auto;gap:8px;align-items:stretch}
+#qa .btn{min-width:76px;padding:0 20px}
+
+/* Quick-note mode hides the app and shows only the capture sheet */
+:root[data-quick] header,:root[data-quick] nav,:root[data-quick] .fab,:root[data-quick] main{visibility:hidden}
+
+/* Laptop and desktop: side rail, wider reading column, centered dialogs */
+@media(min-width:900px){
+  body{font-size:16px;padding-left:208px}
+  h1{font-size:32px;margin-top:22px}
+  h2{font-size:20px}
+  small{font-size:14px}
+  header,main{max-width:780px;padding-left:32px;padding-right:32px}
+  main{padding-bottom:48px}
+  nav{top:0;right:auto;width:208px;border-top:0;border-right:1px solid var(--ln);padding:20px 12px}
+  nav div{display:flex;flex-direction:column;gap:4px;height:auto;max-width:none;padding:0}
+  nav button{margin:0;height:42px;padding:0 14px;text-align:left;font-size:15px}
+  .fab{right:32px;bottom:32px}
+  #toast{left:224px;right:16px;bottom:24px}
+  dialog{margin:auto;max-width:520px;border:1px solid var(--ln);border-radius:10px}
+  .now .t{font-size:36px}
+  .btn:hover,.chip:hover{background:var(--tr2)}
+}
+/* Wide laptop screens: keep one readable column (multi-column flow pushed text sideways) */
+@media(min-width:1100px){
+  .now{padding:26px 28px}
+  .now .t{font-size:40px}
+  #qa{max-width:560px}
+}
+
+/* Page headers with a button (More, Study): title left, button right, never squashed */
+.hdr,div[style*="space-between"]{gap:12px}
+.hdr{display:flex;justify-content:space-between;align-items:center}
+.hdr h1,div[style*="space-between"]>h1{min-width:0;margin-right:auto}
+.hdr .btn,div[style*="space-between"]>.btn{flex:none;white-space:nowrap}
+/* The logo is a button, not a picture: no tap flash, no selection box */
+*{-webkit-tap-highlight-color:transparent}
+.mk,.mk svg{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.mk svg{pointer-events:none}
+.mk:focus{outline:none}
+.mk:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:4px}
+.mk:active{opacity:.6}
+main>.hdr,main>div[style*="space-between"]{margin:16px 0 4px}
+.hdr h1,main>div[style*="space-between"]>h1{margin:0}
+.hdr+p.mu{margin:2px 0 14px!important}
+
+/* Calm overdue: no red for things that slipped. Errors keep their colour. */
+small.late{color:var(--mu)}
+
+/* Phase 5: skip link (visible only when a keyboard reaches it), Indic text needs a little more line height */
+#nx-skip{position:fixed;left:12px;top:-60px;z-index:100;padding:12px 16px;border-radius:var(--r);background:var(--ink);color:var(--bg);font-weight:600;text-decoration:none}
+#nx-skip:focus{top:calc(12px + env(safe-area-inset-top,0px))}
+html[lang=hi] body,html[lang=te] body{line-height:1.65}
+html[lang=hi] h1,html[lang=hi] h2,html[lang=te] h1,html[lang=te] h2{line-height:1.25;letter-spacing:0}
+html[lang=hi] nav button,html[lang=te] nav button{font-size:13px}
+#nx-th:focus,main h1:focus{outline:none}
+
+/* Sound: the speaker button beside the search bar (mute / unmute). Follows the theme through variables only. */
+.nxs{flex:none;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:var(--r);background:none;color:var(--mu)}
+.nxs:hover{color:var(--ink);background:var(--tr)}
+.nxs:active{background:var(--tr2)}
+.nxs svg{display:block;pointer-events:none}
+
+/* The page container is focused by code after you change tabs (so screen readers follow). It is not a control,
+   so it never gets a ring: the ring was drawn as a heavy bar across the Library, worst in the light theme. */
+main:focus,#m:focus,main:focus-visible,#m:focus-visible{outline:none}
+
+/* ===== Accent reaches every tab =====
+   Before this, the accent colour only touched a few buttons, so the Library (which has none) never changed
+   when you picked Steel, Sage or Clay. Everything below uses --ac / --on, which are the same colours as
+   --ink / --bg in the default Graphite accent, so Graphite looks exactly as before. */
+.chip[aria-pressed=true]{background:var(--ac);border-color:var(--ac);color:var(--on)}
+nav button[aria-current=page]{color:var(--ac)}
+.rg{background:conic-gradient(var(--ac) calc(var(--p)*1%),var(--tr2) 0)}
+.bars i{background:var(--ac)}
+::selection{background:color-mix(in srgb,var(--ac) 30%,transparent)}
+/* Steel, Sage and Clay also tint the page titles and the Home card; Graphite stays plain. */
+:root[data-accent]:not([data-accent=graphite]) main h1::after{content:"";display:block;width:28px;height:3px;border-radius:2px;background:var(--ac);margin:8px 0 10px}
+:root[data-accent=steel]{--na:#2A3A52;--nb:#161F2C}
+:root[data-accent=sage]{--na:#2F3F2C;--nb:#192317}
+:root[data-accent=clay]{--na:#4A3024;--nb:#27180F}
+/* Library rows: a thin accent bar on the row you are pressing */
+#m li.row:has(.rm:active){box-shadow:inset 3px 0 0 var(--ac)}

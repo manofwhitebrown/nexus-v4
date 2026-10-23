@@ -1,0 +1,62 @@
+name: Build Android app
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '*.html'
+      - '*.js'
+      - '*.css'
+      - '*.webmanifest'
+      - 'icons/**'
+      - 'fonts/**'
+      - 'android/**'
+      - '.github/workflows/android.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Run the browser tests first
+        run: |
+          npm ci
+          npm test
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openjdk-21-jdk-headless aapt apksigner zipalign dalvik-exchange
+
+      - name: Build the APK
+        run: bash android/build.sh
+
+      - name: Check the Play Store bundle still builds (test key, not kept)
+        run: ALLOW_DEBUG_SIGNING=1 bash android/build-aab.sh
+
+      - name: Keep a copy with the run
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexus-apk
+          path: android/build/nexus.apk
+
+      - name: Publish as the latest release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view latest >/dev/null 2>&1; then
+            gh release upload latest android/build/nexus.apk --clobber
+          else
+            gh release create latest android/build/nexus.apk --title "Nexus for Android" \
+              --notes "Install nexus.apk on your Android phone. Android asks once to allow installs from your browser." --latest
+          fi

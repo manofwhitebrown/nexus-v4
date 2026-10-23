@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="quick_add"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/sc_quick_short"
+        android:shortcutLongLabel="@string/sc_quick_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.nexus.personal"
+            android:targetClass="com.nexus.personal.QuickAddActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="plan_day"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/sc_plan_short"
+        android:shortcutLongLabel="@string/sc_plan_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.nexus.personal"
+            android:targetClass="com.nexus.personal.MainActivity">
+            <extra android:name="path" android:value="\?a=plan" />
+        </intent>
+    </shortcut>
+</shortcuts>

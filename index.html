@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nexus: tasks, notes and projects</title>
+<script src="i18n.js"></script>
+<script src="i18n-data.js"></script>
+<script src="vault.js"></script>
+<script type="text/nx-defer" data-src="safety.js"></script>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0D0D0E">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Nexus">
+<link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+<meta name="description" content="Nexus: tasks, notes, links and projects, connected. Your data stays on this device.">
+<link rel="stylesheet" href="fonts.css">
+<style>
+:root{--bg:#0D0D0E;--s:#161617;--ink:#ECECEA;--mu:#9A9A9F;--ln:rgba(255,255,255,.11);--ac:#ECECEA;--on:#0D0D0E;--lk:#C8C8CC;--roy:#0D0D0E;--dg:#E8847C;--g1:rgba(13,13,14,.84);--g2:rgba(22,22,24,.97);--serif:"Familjen Grotesk","Noto Sans Devanagari","Noto Sans Telugu",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme="light"]{--bg:#E9E8E4;--s:#F3F2EF;--ink:#141415;--mu:#5C5C61;--ln:rgba(0,0,0,.13);--ac:#141415;--on:#F3F2EF;--lk:#2E2E32;--roy:#141415;--dg:#B3261E;--g1:rgba(233,232,228,.86);--g2:rgba(243,242,239,.97);color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*{box-sizing:border-box}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:17px/1.5 "Familjen Grotesk","Noto Sans Devanagari","Noto Sans Telugu",system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans",sans-serif;overflow-wrap:anywhere}
+button,input,select,textarea{font:inherit;color:inherit}button{cursor:pointer}
+:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+header,main{max-width:560px;margin:0 auto;padding-left:20px;padding-right:20px}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--g1);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding-top:10px;padding-bottom:6px}
+main{padding-bottom:120px}
+h1{font-family:var(--serif);font-size:40px;line-height:1.05;letter-spacing:-.01em;margin:18px 0 2px;font-weight:700}
+h2{font-family:var(--serif);font-size:24px;margin:30px 0 4px;font-weight:700}
+small,.mu{color:var(--mu)}small{display:block;font-size:14.5px}
+input,select,textarea{width:100%;min-height:48px;padding:10px 14px;border:1.5px solid var(--ln);border-radius:10px;background:var(--s)}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--ac)}
+textarea{resize:none;display:block}
+.now{margin-top:16px;padding:22px;border-radius:22px;background:var(--roy);color:#fff;border:1px solid rgba(232,188,79,.6)}.now>p:first-child{color:#F0CF78;letter-spacing:.14em;text-transform:uppercase;font-size:14px;font-weight:700}
+.now p{margin:0}.now .t{font-family:var(--serif);font-size:42px;line-height:1.02;font-weight:700;margin:8px 0}
+.now .t.s{font-size:28px}.row2{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.btn{min-height:48px;padding:0 18px;border:1.5px solid var(--ink);border-radius:12px;background:none;font-weight:600}
+.btn.p{background:var(--ac);border-color:var(--ac);color:var(--on)}.btn.d{border-color:var(--dg);color:var(--dg)}
+.now .btn{border-color:#fff;color:#fff}.now .btn.l{background:var(--ac);border-color:var(--ac);color:var(--on)}
+ul{list-style:none;margin:0;padding:0}.row{display:flex;gap:8px;border-bottom:1px solid var(--ln)}
+.rm{flex:1;min-width:0;text-align:left;background:none;border:0;padding:12px 0}.rm b{display:block;line-height:1.3}
+.dn{color:var(--mu);text-decoration:line-through}.late{color:var(--dg)}
+.ck{flex:none;width:44px;height:44px;margin:3px 0 0 -10px;border:0;background:none;display:grid;place-items:center}
+.ck i{width:24px;height:24px;border:2px solid var(--mu);border-radius:7px;display:block}
+.ck[aria-checked=true] i{background:var(--ac);border-color:var(--ac)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.chip{min-height:44px;padding:0 16px;border:1.5px solid var(--ln);border-radius:99px;background:none}
+.chip[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:var(--bg);font-weight:600}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--g1);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--ln);padding-bottom:env(safe-area-inset-bottom,0px);z-index:8}
+nav div{display:grid;grid-template-columns:repeat(5,1fr);max-width:560px;margin:0 auto;height:60px}
+nav button{border:0;background:none;color:var(--mu);font-size:14px;font-weight:500;padding:0;white-space:nowrap}
+nav button[aria-current=page]{color:var(--ink);font-weight:700;box-shadow:inset 0 3px 0 var(--ac)}
+.fab{position:fixed;right:18px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:9;min-height:52px;padding:0 22px;border:0;border-radius:16px;background:var(--ac);color:var(--on);font-weight:700}
+dialog{width:100%;max-width:560px;max-height:92dvh;margin:auto auto 0;border:0;border-top:1px solid var(--ln);border-radius:22px 22px 0 0;background:var(--g2);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);color:var(--ink);padding:18px 20px calc(20px + env(safe-area-inset-bottom,0px))}
+dialog::backdrop{background:rgba(4,8,20,.55)}dialog label{display:block;margin-top:12px}dialog label>span{display:block;color:var(--mu);font-size:15px;margin-bottom:4px}
+dialog input,dialog select,dialog textarea{background:var(--bg)}dialog input[type=checkbox]{width:24px;min-height:24px;display:inline-block;vertical-align:middle;margin-right:10px}
+#toast{position:fixed;left:16px;right:16px;bottom:calc(76px + env(safe-area-inset-bottom,0px));max-width:520px;margin:0 auto;z-index:20;background:var(--ink);color:var(--bg);border-radius:12px;padding:12px 16px;display:none;justify-content:space-between;gap:12px}
+#toast button{background:none;border:0;color:inherit;font-weight:700;text-decoration:underline}
+#fx{position:fixed;inset:0;z-index:30;background:var(--roy);color:#fff;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;padding-top:calc(24px + env(safe-area-inset-top,0px));padding-bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+#fx .tm{font-size:84px;font-weight:600;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+#fx .btn{border-color:#fff;color:#fff}#fx .btn.l{background:var(--ac);border-color:var(--ac);color:var(--on)}
+.sk{background:var(--ln);border-radius:10px;opacity:.7}
+.card{display:block;width:100%;text-align:left;padding:14px 16px;border:1.5px solid var(--ln);border-radius:12px;background:var(--s);margin-top:8px}
+@media(max-width:360px){nav button{font-size:13px}}
+a{color:var(--lk)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<link rel="stylesheet" href="theme.css">
+</head><body>
+<header><div class="hd"><button class="mk" data-a="tab" data-i="home" aria-label="Home"><svg viewBox="0 0 83 94" aria-hidden="true"><path fill="currentColor" d="M0 0H22L44.5 58L59 0H83V94H59L23 36L34 94H0Z"/></svg></button><input id="q" type="search" enterkeyhint="go" autocomplete="off" maxlength="300" aria-label="Command bar" placeholder="Find or type: task call Sam"></div><small id="qh"></small></header>
+<main id="m" tabindex="-1"><div class="sk" style="width:40%;height:28px;margin-top:22px"></div><div class="sk" style="height:200px;margin-top:24px;border-radius:22px"></div><div class="sk" style="height:20px;margin-top:22px;width:90%"></div><noscript><p>Nexus needs JavaScript to run.</p></noscript></main>
+<button class="fab" data-a="cap">Capture</button>
+<nav aria-label="Main"><div id="nv"></div></nav>
+<dialog id="dlg"></dialog><div id="toast" role="status"></div><div id="fx" role="dialog" aria-label="Focus mode"></div>
+<script type="text/nx-defer">
+const $=s=>document.querySelector(s),E=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const NS=location.pathname.replace(/[^\/]*$/,''),K='nexus.data'+NS,APP_VERSION='4.0.0';let D={items:[],projects:[],log:[],study:[]},S={tab:'home',skip:0,pj:null,col:null,type:'auto'};
+let OK=0;try{const r=JSON.parse(localStorage.getItem(K)||'{}');if(r&&typeof r==='object')D={items:Array.isArray(r.items)?r.items:[],projects:Array.isArray(r.projects)?r.projects:[],log:Array.isArray(r.log)?r.log:[],study:Array.isArray(r.study)?r.study:[],rules:Array.isArray(r.rules)?r.rules:[]};OK=1}catch(e){}
+const LB=D.log.length;{const ids=new Set(D.items.map(x=>x.id));D.log=D.log.filter(l=>ids.has(l.id))}
+const TH='nexus.theme'+NS,th=()=>{try{return localStorage.getItem(TH)||'dark'}catch(e){return'dark'}};
+const applyTh=()=>{const v=th(),t=v==='auto'?(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'):v==='light'?'light':'dark';document.documentElement.setAttribute('data-theme',t);const m=document.querySelector('meta[name=theme-color]');if(m)m.content=t==='light'?'#E9E8E4':'#0D0D0E'};applyTh();
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(D));return 1}catch(e){toast('Storage is full or blocked. Export a backup in Settings.');return 0}};
+try{if(OK&&D.log.length!==LB)save()}catch(e){}
+const now=()=>new Date().toISOString(),uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36);
+const dk=(d=new Date())=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const addD=n=>{const d=new Date();d.setDate(d.getDate()+n);return dk(d)};
+/* Add whole months without skipping one: Jan 31 + 1 month is Feb 28 (or 29), not Mar 3 */
+const addMo=(d,n)=>{const r=new Date(d.getFullYear(),d.getMonth()+n,1,d.getHours(),d.getMinutes());r.setDate(Math.min(d.getDate(),new Date(r.getFullYear(),r.getMonth()+1,0).getDate()));return r};
+const ago=iso=>{const m=Math.round((Date.now()-new Date(iso))/6e4);if(m<1)return'just now';if(m<60)return m+' min ago';const h=Math.floor(m/60);if(h<24)return h+' h ago';const d=Math.floor(h/24);return d<7?d+' d ago':new Date(iso).toLocaleDateString(undefined,{day:'numeric',month:'short'})};
+const dom=u=>{try{return new URL(u).hostname.replace(/^www\./,'')}catch(e){return''}};
+const safeUrl=u=>{u=String(u||'').trim();if(!u||u.length>2000)return'';try{const x=new URL(/^https?:\/\//i.test(u)?u:'https://'+u);if(!/^https?:$/.test(x.protocol)||x.username||x.password||!x.hostname.includes('.'))return'';return x.href}catch(e){return''}};
+const pl=(n,w)=>n+' '+w+(n===1?'':'s');
+const pname=i=>(D.projects.find(p=>p.id===i)||{}).name||'';
+const get=i=>D.items.find(x=>x.id===i);
+const logA=(k,it)=>{D.log.push({t:now(),k,id:it.id,ti:String(it.title||'Untitled').slice(0,80),ty:it.type});if(D.log.length>400)D.log.splice(0,D.log.length-400)};
+function toast(msg,act,fn){const t=$('#toast');t.innerHTML='<span>'+E(msg)+'</span>'+(act?'<button>'+E(act)+'</button>':'');t.style.display='flex';if(act)t.querySelector('button').onclick=()=>{fn();t.style.display='none'};clearTimeout(toast.h);toast.h=setTimeout(()=>t.style.display='none',5000)}
+function parse(t,force){t=String(t||'').trim().slice(0,5000);if(!t)return null;const o=t;let url='';const m=t.match(/\b(?:https?:\/\/|www\.)[^\s]+/i);
+if(m){const u=safeUrl(m[0].replace(/[.,;:!?)]+$/,''));if(u){url=u;t=t.replace(m[0],' ')}}
+const tags=[];t=t.replace(/(^|\s)#([\p{L}\p{M}\p{N}_-]{1,30})/gu,(a,s,x)=>{tags.push(x.toLowerCase());return s});
+let project=null;t=t.replace(/(^|\s)@([\p{L}\p{M}\p{N}_-]{1,60})/gu,(a,s,n)=>{const p=D.projects.find(p=>p.name.toLowerCase().replace(/\s/g,'').startsWith(n.toLowerCase()));if(p&&!project){project=p.id;return s}return a});
+if(!project)for(const p of D.projects)if(p.name.length>2&&t.toLowerCase().includes(p.name.toLowerCase())){project=p.id;break}
+t=t.replace(/\s+/g,' ').trim();const tp=/^(todo|task|remind me to|remind me|reminder)\b[:\s-]*/i,ip=/^idea\b[:\s-]*/i,np=/^note\b[:\s-]*/i;
+const type=force||(tp.test(t)?'task':ip.test(t)?'idea':np.test(t)?'note':url&&t.length<200?'link':/\b(i'll|i will|i need to|i have to|need to)\b/i.test(t)&&t.length<160?'task':'note');
+t=t.replace(tp,'').replace(ip,'').replace(np,'').trim();
+const promise=type==='task'&&/\b(i'll|i will|remind me|promised?|get back to)\b/i.test(o);
+const due=type==='task'?(/\btomorrow\b/i.test(t)?addD(1):/\b(today|tonight)\b/i.test(t)?dk():null):null;
+let title=t.slice(0,120),body=t.length>120?t.slice(120):'';if(!title&&url)title=dom(url);if(!title&&tags.length)title='#'+tags[0];
+return{type,title,body,url,tags:[...new Set(tags)].slice(0,10),project,due,promise}}
+function addItem(p){if(!p||(!p.title&&!p.url))return null;if(D.items.length>=5000){toast('Limit of 5,000 items reached.');return null}
+const it={id:uid(),type:p.type,title:p.title,body:p.body||'',url:p.url||'',project:p.project||null,tags:p.tags||[],done:false,doneAt:null,due:p.due||null,promise:!!p.promise,media:p.media||null,created:now(),updated:now()};
+D.items.push(it);logA('created',it);save();return it}
+function upd(i,patch){const it=get(i);if(!it)return;const was=it.done;Object.assign(it,patch,{updated:now()});if(patch.done===true&&!was){it.doneAt=now();logA('done',it)}else if(patch.done===false)it.doneAt=null;else logA('updated',it);
+const l=D.log;if(l.length>1&&l[l.length-1].k==='updated'&&l[l.length-2].k==='updated'&&l[l.length-2].id===i)l.splice(l.length-2,1);save()}
+const dueL=d=>!d?'':d===dk()?'due today':d===addD(1)?'due tomorrow':d<dk()?'from '+new Date(d+'T00:00').toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'}):'due '+new Date(d+'T00:00').toLocaleDateString(undefined,{day:'numeric',month:'short'});
+const meta=i=>[i.media?i.media.kind:'',pname(i.project),i.type==='link'?dom(i.url):'',i.type==='task'&&!i.done?dueL(i.due):'',i.promise&&!i.done?'promised':'',i.type!=='task'?ago(i.updated):''].filter(Boolean).join(', ');
+const row=i=>`<li class="row">${i.type==='task'?`<button class="ck" role="checkbox" aria-checked="${!!i.done}" aria-label="Mark done: ${E(i.title)}" data-a="done" data-i="${i.id}"><i></i></button>`:''}<button class="rm" data-a="open" data-i="${i.id}"><b class="${i.done?'dn':''}">${E(i.title||dom(i.url)||'Untitled')}</b><small class="${i.due&&i.due<dk()&&!i.done?'late':''}">${E(meta(i))}</small></button></li>`;
+const list=a=>a.length?`<ul>${a.map(row).join('')}</ul>`:'';
+const sec=(t,h)=>h?`<h2>${E(t)}</h2>${h}`:'';
+const words=s=>new Set((String(s).toLowerCase().match(/[a-z0-9\u0900-\u0c7f]{4,}/g)||[]));
+function rel(a,b){let s=0,r='';if(a.project&&a.project===b.project){s+=4;r='Same project: '+pname(a.project)}const t=a.tags.filter(x=>b.tags.includes(x));if(t.length){s+=3*t.length;r=r||'Shares #'+t[0]}const wa=words(a.title),w=[...words(b.title)].filter(x=>wa.has(x));if(w.length){s+=Math.min(3,w.length);r=r||'Both mention "'+w[0]+'"'}return{s,r}}
+let related=(it)=>D.items.filter(o=>o.id!==it.id).map(o=>({o,...rel(it,o)})).filter(x=>x.s>=2).sort((a,b)=>b.s-a.s).slice(0,5);
+const COL={'Unfinished':i=>i.type==='task'&&!i.done,'Overdue':i=>i.type==='task'&&!i.done&&i.due&&i.due<dk(),'Saved for later':i=>i.type==='link','Ideas':i=>i.type==='idea','This week':i=>Date.now()-new Date(i.updated)<6048e5,'Untouched for 30 days':i=>!i.done&&Date.now()-new Date(i.updated)>2592e6};
+function cols(){const c={...COL},n={};D.items.forEach(i=>i.tags.forEach(t=>n[t]=(n[t]||0)+1));Object.entries(n).filter(e=>e[1]>=2).sort((a,b)=>b[1]-a[1]).slice(0,5).forEach(([t])=>c['#'+t]=i=>i.tags.includes(t));return c}
+function search(q){const tk=q.toLowerCase().split(/\s+/).filter(Boolean).slice(0,6),pr=D.projects.filter(p=>tk.every(t=>p.name.toLowerCase().includes(t)));
+const it=[];for(const i of D.items){const ti=i.title.toLowerCase(),bo=i.body.toLowerCase(),tg=i.tags.join(' '),pn=pname(i.project).toLowerCase();let sc=0,ok=1;for(const t of tk){let s=0;if(ti.includes(t))s+=4;if(tg.includes(t))s+=3;if(pn.includes(t))s+=2;if(bo.includes(t)||i.url.toLowerCase().includes(t))s+=1;if(!s){ok=0;break}sc+=s}if(ok)it.push({i,sc})}
+it.sort((a,b)=>b.sc-a.sc||b.i.updated.localeCompare(a.i.updated));return{pr,it:it.slice(0,60).map(x=>x.i)}}
+const nav=[['home','Home'],['tasks','Tasks'],['notes','Notes'],['study','Study'],['browse','Browse']];
+function render(){const q=$('#q').value.trim(),m=$('#m');$('#nv').innerHTML=nav.map(([k,l])=>`<button data-a="tab" data-i="${k}" ${S.tab===k&&!q?'aria-current="page"':''}>${l}</button>`).join('');
+$('#qh').textContent=q?'Searching. Press Enter to run a command (task, note, idea, focus 25).':'';
+if(q){const r=search(q);let h='<h1>Results</h1><p><a href="https://www.google.com/search?q='+encodeURIComponent(q)+'" target="_blank" rel="noopener noreferrer">Search the web for &ldquo;'+E(q.slice(0,60))+'&rdquo;</a></p>';if(!r.pr.length&&!r.it.length)h+='<p class="mu">Nothing matches. Press Enter to save it as a note, or start with task, idea or focus 25.</p>';
+if(r.pr.length)h+=sec('Projects','<ul>'+r.pr.map(p=>`<li class="row"><button class="rm" data-a="proj" data-i="${p.id}"><b>${E(p.name)}</b></button></li>`).join('')+'</ul>');
+[['task','Tasks'],['note','Notes'],['link','Saved'],['idea','Ideas']].forEach(([t,l])=>h+=sec(l,list(r.it.filter(i=>i.type===t))));m.innerHTML=h;return}
+m.innerHTML=({home,tasks,notes,browse,time,study}[S.tab])()+foot()}
+const foot=()=>`<footer style="margin-top:44px;padding-top:14px;border-top:1px solid var(--ln)" class="mu"><a href="privacy.html">Privacy</a> &nbsp; <a href="terms.html">Terms</a><small style="margin-top:6px">&copy; ${new Date().getFullYear()} Nexus. Your data stays on this device.</small></footer>`;
+function empty(t,b){return`<div style="margin-top:28px"><b style="font-size:21px">${E(t)}</b><p class="mu">${E(b)}</p></div>`}
+function home(){const h=new Date().getHours(),td=dk(),T=D.items.filter(i=>i.type==='task'&&!i.done);const rk=t=>t.due&&t.due<td?0:t.due===td?1:t.promise?2:t.due?3:4;
+T.sort((a,b)=>rk(a)-rk(b)||(a.due||'9').localeCompare(b.due||'9')||a.created.localeCompare(b.created));const n=T.length,st=n?S.skip%n:0,O=n?[...T.slice(st),...T.slice(0,st)]:[],nt=O[0];
+let o=`<h1>${h<5?'Still up':h<12?'Good morning':h<17?'Good afternoon':h<22?'Good evening':'Late night'}</h1><p class="mu" style="margin:0">${new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})}</p>`;
+o+='<section class="now"><p>Now</p>'+(nt?`<button class="rm" style="padding:0;color:inherit" data-a="open" data-i="${nt.id}"><span class="t ${nt.title.length>60?'s':''}" style="display:block">${E(nt.title)}</span></button><p>${E([pname(nt.project),dueL(nt.due),nt.promise?'you promised this':''].filter(Boolean).join(', '))}</p><div class="row2"><button class="btn l" data-a="done" data-i="${nt.id}">Mark done</button><button class="btn" data-a="focus" data-i="${nt.id}">Focus 25 min</button>${n>1?'<button class="btn" data-a="skip">Skip</button>':''}</div>`:`<p class="t s">${D.items.length?'Nothing to do right now':'Start with one thing'}</p><p>Tap Capture. Words like tomorrow, #tags and @project sort it for you.</p>`)+'</section>';
+{const dc=D.study.reduce((n,s)=>n+dueC(s).length,0);o+=`<div class="row2"><button class="btn" data-a="askai">Ask Nexus</button>${dc?`<button class="btn" data-a="tab" data-i="study">${pl(dc,'card')} to review</button>`:''}</div>`}o+=sec('Then',list(O.slice(1,3)));const sh=new Set(O.slice(0,3).map(x=>x.id));o+=sec('Loose ends',list(T.filter(t=>t.promise&&!sh.has(t.id)).slice(0,3)));
+const old=D.items.filter(i=>i.type!=='task'&&Date.now()-new Date(i.updated)>6048e5),rec=D.items.filter(i=>Date.now()-new Date(i.updated)<2592e5);let bs=null;
+for(const c of old)for(const r of rec){const x=rel(c,r);if(x.s>=2&&(!bs||x.s>bs.s))bs={i:c,s:x.s,r:x.r}}
+if(!bs&&old.length){const p=old[Math.floor(Date.now()/864e5)%old.length];bs={i:p,r:'Saved '+ago(p.created)}}
+if(bs)o+=sec('Worth another look',`<button class="card" data-a="open" data-i="${bs.i.id}"><b>${E(bs.i.title||'Untitled')}</b><small>${E(bs.r)}</small></button>`);
+const L=D.log.filter(l=>dk(new Date(l.t))===dk()),dn=L.filter(l=>l.k==='done').length,cr=L.filter(l=>l.k==='created').length;
+const wk=D.log.filter(l=>Date.now()-new Date(l.t)<6048e5);
+if(D.items.length)o+=sec('Your day',`<p class="prose" style="margin:0">${dn||cr?`Today: ${dn} done, ${cr} captured.`:'Nothing yet today.'} This week: ${wk.filter(l=>l.k==='done').length} finished, ${wk.filter(l=>l.k==='created').length} captured.</p>`);
+return o+`<p style="margin-top:36px"><button class="btn" data-a="settings">Settings and backup</button></p>`}
+function tasks(){const td=dk(),T=D.items.filter(i=>i.type==='task'),op=T.filter(t=>!t.done),by=(a,b)=>(a.due||'').localeCompare(b.due||'')||a.created.localeCompare(b.created);
+let o='<h1>Tasks</h1><form id="qa" style="display:flex;gap:8px;margin-top:10px"><input name="t" maxlength="400" aria-label="New task" placeholder="Add a task and press Enter" autocomplete="off"><button class="btn p">Add</button></form>';
+if(!T.length)return o+empty('No tasks yet','Add one above. Today and tomorrow set the due date for you.');
+o+=sec('Today',list(op.filter(t=>t.due&&t.due<=td).sort(by)))+sec('Coming up',list(op.filter(t=>t.due&&t.due>td).sort(by)))+sec('No date',list(op.filter(t=>!t.due).sort(by)));
+const dn=T.filter(t=>t.done).sort((a,b)=>(b.doneAt||'').localeCompare(a.doneAt||'')).slice(0,20);if(dn.length)o+=`<details style="margin-top:28px"><summary><b>Done (${dn.length})</b></summary>${list(dn)}</details>`;return o}
+function notes(){const f=S.nf||'all',A=D.items.filter(i=>i.type!=='task').sort((a,b)=>b.updated.localeCompare(a.updated));
+let o='<h1>Notes</h1><div class="chips">'+[['all','All'],['note','Notes'],['link','Saved'],['idea','Ideas']].map(([k,l])=>`<button class="chip" aria-pressed="${f===k}" data-a="nf" data-i="${k}">${l}</button>`).join('')+'</div>';
+if(!A.length)return o+empty('Nothing saved yet','Capture a note, link or idea and it shows up here.');return o+list(A.filter(i=>f==='all'||i.type===f))}
+function browse(){if(S.pj){const p=D.projects.find(x=>x.id===S.pj);if(!p){S.pj=null;return browse()}const A=D.items.filter(i=>i.project===p.id);
+return`<p><button class="btn" data-a="bk">Back</button></p><h1>${E(p.name)}</h1><div class="row2"><button class="btn p" data-a="cap" data-i="${p.id}">Add to this project</button></div>`+(A.length?sec('Open tasks',list(A.filter(i=>i.type==='task'&&!i.done)))+sec('Notes and saved',list(A.filter(i=>i.type!=='task')))+sec('Done',list(A.filter(i=>i.done))):empty('This project is empty','Capture something and pick this project, or write @'+p.name.split(' ')[0]+' in the text.'))+`<div class="row2" style="margin-top:32px"><button class="btn" data-a="ren" data-i="${p.id}">Rename</button><button class="btn d" data-a="delp" data-i="${p.id}">Delete project</button></div>`}
+const C=cols();if(S.col&&C[S.col])return`<p><button class="btn" data-a="bk">Back</button></p><h1>${E(S.col)}</h1>`+(list(D.items.filter(C[S.col]))||'<p class="mu">Nothing here right now.</p>');S.col=null;
+return`<div style="display:flex;justify-content:space-between;align-items:center"><h1>Browse</h1><button class="btn p" data-a="newp">New project</button></div><p><button class="btn" data-a="tab" data-i="time">Open timeline</button></p>`+sec('Projects',D.projects.length?'<ul>'+D.projects.map(p=>{const A=D.items.filter(i=>i.project===p.id);return`<li class="row"><button class="rm" data-a="proj" data-i="${p.id}"><b>${E(p.name)}</b><small>${pl(A.filter(i=>i.type==='task'&&!i.done).length,'open task')}, ${pl(A.filter(i=>i.type!=='task').length,'note')}</small></button></li>`}).join('')+'</ul>':'<p class="mu">A project gathers tasks, notes and links for one piece of work. Create one, then mention its name or type @name when you capture.</p>')+sec('Smart collections','<p class="mu" style="margin:0">Built automatically from what you save.</p><ul>'+Object.keys(C).map(k=>`<li class="row"><button class="rm" data-a="col" data-i="${E(k)}"><b>${E(k)}</b><small>${pl(D.items.filter(C[k]).length,'item')}</small></button></li>`).join('')+'</ul>')}
+function time(){const L=[...D.log].reverse();let o='<h1>Timeline</h1><p class="mu" style="margin:0">Everything you did in Nexus, newest first.</p>';if(!L.length)return o+empty('Nothing yet','Your activity appears here as you capture and finish things.');let last='';
+for(const l of L.slice(0,150)){const d=l.t.slice(0,10),loc=dk(new Date(l.t));if(loc!==last){last=loc;o+=`<h2>${loc===dk()?'Today':loc===addD(-1)?'Yesterday':new Date(l.t).toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'short'})}</h2>`}
+const v=l.k==='focus'?'Focused '+l.m+' min on':{created:'Added',updated:'Edited',done:'Finished'}[l.k];o+=`<button class="card" style="border:0;border-bottom:1px solid var(--ln);border-radius:0;background:none;margin:0;padding:10px 0" ${get(l.id)?`data-a="open" data-i="${l.id}"`:'disabled'}><b>${E(l.ti)}</b><small>${new Date(l.t).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})}, ${v} ${l.ty}</small></button>`}return o+'<p style="margin-top:28px"><button class="btn d" data-a="clrlog">Clear timeline</button></p>'}
+const dlg=$('#dlg');function sheet(h){dlg.innerHTML=h;if(!dlg.open)dlg.showModal()}
+dlg.addEventListener('close',()=>{if(FL){const f=FL;FL=null;f()}dlg.oninput=null;if(rec&&rec.state!=='inactive')rec.stop();dlg.innerHTML='';render()});dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.close()});
+function capture(pj){let ty='auto';PM=null;sheet(`<h2 style="margin:0">Capture</h2><textarea id="ct" rows="4" maxlength="5000" aria-label="What do you want to save?" placeholder="Type or paste anything" style="margin-top:12px"></textarea><small id="ch" role="status"></small><div class="row2"><button class="btn" id="mp">Photo</button><button class="btn" id="mv">Voice</button><button class="btn" id="mf">File</button></div><small id="mi" role="status"></small><div class="chips" id="cc">${['auto','note','task','link','idea'].map(t=>`<button class="chip" data-t="${t}" aria-pressed="${t==='auto'}">${t[0].toUpperCase()+t.slice(1)}</button>`).join('')}</div><label><span>Project</span><select id="cp"><option value="">No project</option>${D.projects.map(p=>`<option value="${p.id}" ${p.id===pj?'selected':''}>${E(p.name)}</option>`).join('')}</select></label><div class="row2"><button class="btn p" id="cs" style="flex:1">Save</button><button class="btn" id="cx">Cancel</button></div>`);
+const ct=$('#ct'),hint=()=>{const p=parse(ct.value,ty==='auto'?null:ty);$('#ch').textContent=p?`Saving as ${{note:'a note',task:'a task',link:'a saved link',idea:'an idea'}[p.type]}${p.project||$('#cp').value?' in '+pname(p.project||$('#cp').value):''}${p.due?', '+dueL(p.due):''}${p.tags.length?', tagged '+p.tags.map(t=>'#'+t).join(' '):''}.`:'Use #tags and @project. Words like tomorrow set a due date.'};
+ct.oninput=hint;mediaUI(m=>{PM=m});$('#cp').onchange=hint;$('#cc').onclick=e=>{const b=e.target.closest('[data-t]');if(!b)return;ty=b.dataset.t;[...$('#cc').children].forEach(c=>c.setAttribute('aria-pressed',c===b));hint()};$('#cx').onclick=()=>dlg.close();
+$('#cs').onclick=()=>{const p=parse(ct.value,ty==='auto'?null:ty)||(PM?{type:'note',title:'',body:'',url:'',tags:[],project:null,due:null,promise:false}:null);if(!p){$('#ch').textContent='Type something to save.';return}if($('#cp').value)p.project=$('#cp').value;if(PM){p.media=PM;if(!p.title)p.title=PM.name}const it=addItem(p);if(!it)return;dlg.close();toast('Saved as '+it.type,'Undo',()=>{D.items=D.items.filter(x=>x.id!==it.id);D.log=D.log.filter(l=>!(l.id===it.id&&l.k==='created'));save();render()})};hint();ct.focus()}
+let FL=null;
+function edit(i){if(FL){const f=FL;FL=null;f()}const it=get(i);if(!it)return;const R=related(it);
+sheet(`<div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">Edit</h2><button class="btn" id="ex">Close</button></div><div class="chips" id="ty">${['note','task','link','idea'].map(t=>`<button class="chip" data-t="${t}" aria-pressed="${it.type===t}">${t[0].toUpperCase()+t.slice(1)}</button>`).join('')}</div>
+<label><span>Title</span><input id="et" maxlength="200" value="${E(it.title)}"></label>${it.type==='link'||it.url?`<label><span>Web address</span><input id="eu" inputmode="url" maxlength="2000" value="${E(it.url)}"></label>${it.url?`<p><a href="${E(it.url)}" target="_blank" rel="noopener noreferrer">Open ${E(dom(it.url))}</a></p>`:''}`:''}
+<div id="med"></div><label><span>Notes</span><textarea id="eb" rows="5" maxlength="20000">${E(it.body)}</textarea></label>
+${it.type==='task'?`<label><span>Due date</span><input id="ed" type="date" value="${it.due||''}"></label><label><input type="checkbox" id="ek" ${it.done?'checked':''}>Done</label><label><input type="checkbox" id="ep" ${it.promise?'checked':''}>I promised this to someone</label>`:''}
+<label><span>Project</span><select id="es"><option value="">No project</option>${D.projects.map(p=>`<option value="${p.id}" ${p.id===it.project?'selected':''}>${E(p.name)}</option>`).join('')}</select></label><label><span>Tags, separated by commas</span><input id="eg" maxlength="200" value="${E(it.tags.join(', '))}"></label>
+${R.length?`<h2>Connected</h2><small>Shares a project, tag or topic with this.</small><ul>${R.map(x=>`<li class="row"><button class="rm" data-a="open" data-i="${x.o.id}"><b>${E(x.o.title||'Untitled')}</b><small>${E(x.r)}</small></button></li>`).join('')}</ul>`:''}
+<small style="margin-top:14px">Added ${ago(it.created)}, edited ${ago(it.updated)}.</small><div class="row2"><button class="btn d" id="edl">Delete</button></div>`);
+const g=s=>$(s),sv=()=>{const p={title:g('#et').value.trim().slice(0,200),body:g('#eb').value,project:g('#es').value||null,tags:[...new Set(g('#eg').value.toLowerCase().split(/[,\s]+/).map(t=>t.replace(/^#+/,'').replace(/[^\p{L}\p{M}\p{N}_-]/gu,'')).filter(Boolean))].slice(0,10)};
+if(g('#eu'))p.url=safeUrl(g('#eu').value);if(g('#ed'))p.due=g('#ed').value||null;if(g('#ek'))p.done=g('#ek').checked;if(g('#ep'))p.promise=g('#ep').checked;const cur=get(i);if(!cur||!g('#et'))return;if(!Object.keys(p).every(k=>Array.isArray(p[k])?p[k].join(',')===(cur[k]||[]).join(','):p[k]===cur[k]))upd(i,p)};
+dlg.querySelectorAll('input,textarea,select').forEach(e=>e.onchange=sv);let tm;FL=()=>{clearTimeout(tm);try{sv()}catch(e){}};dlg.oninput=()=>{clearTimeout(tm);tm=setTimeout(FL,500)};mediaShow(it,$('#med'));$('#ex').onclick=()=>{sv();dlg.close()};
+$('#ty').onclick=e=>{const b=e.target.closest('[data-t]');if(b){sv();const p={type:b.dataset.t};if(p.type!=='task'){p.due=null;p.promise=false;p.done=false}upd(i,p);edit(i)}};
+$('#edl').onclick=()=>{const c={...it},lg=D.log.filter(l=>l.id===i);D.items=D.items.filter(x=>x.id!==i);D.log=D.log.filter(l=>l.id!==i);save();dlg.close();setTimeout(()=>{try{window.gcMedia&&window.gcMedia()}catch(e){}},8000);toast('Deleted','Undo',()=>{D.items.push(c);D.log.push(...lg);D.log.sort((a,b)=>a.t<b.t?-1:1);save();render()})}}
+function settings(){const t=th()==='light'?'light':'dark';sheet(`<div style="display:flex;justify-content:space-between"><h2 style="margin:0">Settings</h2><button class="btn" id="sx">Close</button></div><h2>Theme</h2><div class="chips" id="th">${[['dark','Dark'],['light','Light']].map(([k,l])=>`<button class="chip" data-t="${k}" aria-pressed="${t===k}">${l}</button>`).join('')}</div>
+<h2>Reminders</h2><p class="mu" id="rmt"></p><div class="row2"><button class="btn p" id="rn">Turn on reminders</button></div><h2>Backup</h2><p class="mu">Your data lives only in this browser. Export a file now and then.</p><div class="row2"><button class="btn p" id="xp">Export backup</button><button class="btn" id="im">Restore from file</button></div><input type="file" id="fi" accept=".json,application/json" hidden>
+<h2>Storage</h2><p class="mu">${pl(D.items.length,'item')}, ${pl(D.projects.length,'project')}, about ${Math.max(1,Math.round(JSON.stringify(D).length/1024))} KB of roughly 5 MB.</p><h2>Delete everything</h2><div class="row2"><button class="btn d" id="wp">Delete all data</button></div><p class="mu" style="margin-top:20px">Nexus ${APP_VERSION}</p><p class="mu" data-nx-i18n="off" style="margin-top:0">Made by Mohammed Abdul Nayeem</p>`);
+$('#sx').onclick=()=>dlg.close();{const st=()=>{const p='Notification' in window?Notification.permission:'none';$('#rmt').textContent=p==='granted'?'On. Nexus alerts you each morning about tasks due, and when a focus session ends. This works while Nexus is open or running in the background. A browser can pause it. In the Android app, tasks with a start time ring even when Nexus is closed.':p==='denied'?'Blocked. Allow notifications for this site in your browser settings.':p==='none'?'This browser does not support notifications.':'Get a morning alert for tasks due today and a ping when focus ends.';$('#rn').hidden=p!=='default'};st();$('#rn').onclick=async()=>{try{await Notification.requestPermission()}catch(e){}st();checkDue()}}$('#th').onclick=e=>{const b=e.target.closest('[data-t]');if(b){try{localStorage.setItem(TH,b.dataset.t)}catch(x){}applyTh();settings()}};
+$('#xp').onclick=()=>{const u=URL.createObjectURL(new Blob([JSON.stringify({app:'nexus',v:2,...D},null,1)],{type:'application/json'})),a=document.createElement('a');a.href=u;a.download='nexus-backup-'+dk()+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);toast('Backup exported')};
+$('#im').onclick=()=>$('#fi').click();$('#fi').onchange=async e=>{const f=e.target.files[0];if(!f)return;if(f.size>5e6){toast('File too large for a Nexus backup.');return}try{const r=JSON.parse(await f.text());if(r.app!=='nexus'||!Array.isArray(r.items))throw 0;
+if(!confirm('Restoring replaces everything now in Nexus. Continue?'))return;const ok=s=>typeof s==='string'?s:'';D={items:r.items.filter(x=>x&&typeof x==='object').slice(0,5000).map(x=>({id:ok(x.id)||uid(),type:['note','task','link','idea'].includes(x.type)?x.type:'note',title:ok(x.title).slice(0,200),body:ok(x.body).slice(0,20000),url:safeUrl(x.url),project:ok(x.project||x.projectId)||null,tags:Array.isArray(x.tags)?x.tags.map(String).slice(0,10):[],done:x.done===true,doneAt:x.doneAt||null,due:/^\d{4}-\d{2}-\d{2}$/.test(x.due)?x.due:null,promise:x.promise===true,created:x.created||now(),updated:x.updated||x.created||now()})),projects:(r.projects||[]).filter(p=>p&&p.name).slice(0,100).map(p=>({id:ok(p.id)||uid(),name:ok(p.name).slice(0,60)})),log:Array.isArray(r.log)?r.log.filter(l=>l&&l.t&&l.k).slice(-400):[],study:Array.isArray(r.study)?r.study.slice(0,100):[]};save();dlg.close();toast('Backup restored')}catch(x){toast('That is not a Nexus backup file.')}};
+$('#wp').onclick=()=>{if(confirm('Delete every item and project on this device? This cannot be undone.')){D={items:[],projects:[],log:[],study:[]};save();dlg.close();toast('Everything deleted')}}}
+function ask(title,val,fn){sheet(`<h2 style="margin:0">${E(title)}</h2><label><span>Name</span><input id="an" maxlength="60" value="${E(val||'')}"></label><p id="ae" class="late"></p><div class="row2"><button class="btn p" id="ao" style="flex:1">Save</button><button class="btn" id="ac">Cancel</button></div>`);$('#ac').onclick=()=>dlg.close();$('#an').focus();
+$('#ao').onclick=()=>{const n=$('#an').value.replace(/\s+/g,' ').trim();if(!n){$('#ae').textContent='Give it a name.';return}if(/project/i.test(title)&&D.projects.some(p=>p.name.toLowerCase()===n.toLowerCase()&&p.name!==val)){$('#ae').textContent='You already have a project with that name.';return}fn(n);dlg.close()}}
+let F=null;const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+function tick(){if(!F||!F.run)return;F.left=Math.max(0,Math.ceil((F.end-Date.now())/1e3));if(F.left<=0){clearInterval(F.h);F.run=0;notify('Focus session finished','Nice work. Take a break.','focus');try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}}fx()}
+function focus(i,min=25){const it=get(i);if(!it)return;if(F)clearInterval(F.h);F={id:i,left:min*60,run:1,end:Date.now()+min*6e4};fx();F.h=setInterval(tick,1e3)}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick()});
+function fx(){const o=$('#fx');if(!F){o.style.display='none';return}const it=get(F.id);o.style.display='flex';
+o.innerHTML=`<p>Focus</p><div class="tm" aria-live="off">${fmt(F.left)}</div><p style="font-size:24px;font-weight:600;margin:14px 0 4px">${E(it?it.title:'')}</p><p>${F.left?'':'Time is up.'}${it&&it.project?E(pname(it.project)):''}</p><div class="row2" style="justify-content:center">${F.left?`<button class="btn" data-a="fp">${F.run?'Pause':'Resume'}</button>`:''}${it&&it.type==='task'?'<button class="btn l" data-a="fd">Mark done</button>':''}<button class="btn" data-a="fe">End</button></div>`}
+const stopF=()=>{if(F)clearInterval(F.h);F=null;fx()};
+const NK='nexus.notif'+NS;
+function notify(t,b,tag){try{if(!('Notification' in window)||Notification.permission!=='granted')return;navigator.serviceWorker.getRegistration().then(r=>r?r.showNotification(t,{body:b,tag,icon:'icons/icon-192.png',badge:'icons/icon-192.png'}):new Notification(t,{body:b,tag}))}catch(e){}}
+function checkDue(){try{if(!('Notification' in window)||Notification.permission!=='granted'||new Date().getHours()<8)return;const td=dk();let seen={};try{seen=JSON.parse(localStorage.getItem(NK)||'{}')}catch(e){}if(seen.d===td)return;const T=D.items.filter(i=>i.type==='task'&&!i.done&&i.due&&i.due<=td);if(!T.length)return;notify('Nexus: '+pl(T.length,'task')+' due',T.slice(0,3).map(t=>t.title).join(', '),'due');localStorage.setItem(NK,JSON.stringify({d:td}))}catch(e){}}
+setInterval(checkDue,6e4);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkDue()});setTimeout(checkDue,1500);
+const A={tab:i=>{S.tab=i;S.pj=S.col=S.sj=null;$('#q').value='';render();scrollTo(0,0)},open:i=>edit(i),cap:i=>capture(i),settings,skip:()=>{S.skip++;render()},nf:i=>{S.nf=i;render()},proj:i=>{S.tab='browse';S.pj=i;$('#q').value='';render();scrollTo(0,0)},col:i=>{S.col=i;render();scrollTo(0,0)},bk:()=>{S.pj=S.col=null;render()},
+done:i=>{const it=get(i);if(!it)return;const d=!it.done;upd(i,{done:d});S.skip=0;render();if(d)toast('Marked done','Undo',()=>{upd(i,{done:false});render()})},focus:i=>focus(i),fp:()=>{if(!F)return;if(F.run){F.left=Math.max(0,Math.ceil((F.end-Date.now())/1e3));F.run=0}else{F.end=Date.now()+F.left*1e3;F.run=1}fx()},fe:stopF,fd:()=>{const i=F.id;stopF();A.done(i)},
+newp:()=>ask('New project','',n=>{const p={id:uid(),name:n};D.projects.push(p);save();toast('Project created');A.proj(p.id)}),ren:i=>{const p=D.projects.find(x=>x.id===i);ask('Rename project',p.name,n=>{p.name=n;save();toast('Name saved')})},
+clrlog:()=>{if(confirm('Clear the timeline? Your items are not deleted.')){D.log=[];save();render();toast('Timeline cleared')}},
+delp:i=>{const p=D.projects.find(x=>x.id===i);if(confirm('Delete '+p.name+'? Its items stay in Nexus without a project.')){D.projects=D.projects.filter(x=>x.id!==i);D.items.forEach(x=>{if(x.project===i)x.project=null});S.pj=null;save();render();toast('Project deleted')}}};
+
+let PM=null,rec=null;
+let IDBP=null;
+const idb=()=>IDBP||(IDBP=new Promise((res,rej)=>{const r=indexedDB.open('nexus-media'+NS,1);r.onupgradeneeded=()=>r.result.createObjectStore('b');r.onsuccess=()=>{r.result.onversionchange=()=>{r.result.close();IDBP=null};res(r.result)};r.onerror=()=>{IDBP=null;rej(r.error)}}));
+const bput=async(k,b)=>{const v=window.NXVault?await NXVault.rec.seal('media',b):b,d=await idb();return new Promise((res,rej)=>{const t=d.transaction('b','readwrite');t.objectStore('b').put(v,k);t.oncomplete=res;t.onerror=()=>rej(t.error)})};
+const bget=async k=>{const d=await idb(),r=await new Promise((res,rej)=>{const q=d.transaction('b').objectStore('b').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)});return window.NXVault&&r?NXVault.rec.open('media',r):r};
+if(window.NXVault)NXVault.addMigrator('attachments',async dir=>{const d=await idb(),keys=await new Promise((res,rej)=>{const q=d.transaction('b').objectStore('b').getAllKeys();q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)});
+  for(const k of keys){const r=await new Promise((res,rej)=>{const q=d.transaction('b').objectStore('b').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)});const n=dir==='seal'?await NXVault.rec.seal('media',r):await NXVault.rec.open('media',r);
+    if(n!==r)await new Promise((res,rej)=>{const t=d.transaction('b','readwrite');t.objectStore('b').put(n,k);t.oncomplete=res;t.onerror=()=>rej(t.error)})}});
+async function shrink(f){try{const b=await createImageBitmap(f),s=Math.min(1,1280/Math.max(b.width,b.height)),c=document.createElement('canvas');c.width=Math.round(b.width*s);c.height=Math.round(b.height*s);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(b,0,0,c.width,c.height);return await new Promise(r=>c.toBlob(x=>r(x||f),'image/jpeg',.82))}catch(e){return f}}
+function mediaUI(cb){const info=$('#mi');const set=async(blob,kind,name)=>{if(blob.size>8e6){info.textContent='That file is over 8 MB.';return}try{const id=uid();await bput(id,blob);cb({id,kind,name:String(name).slice(0,80),mime:blob.type});info.textContent='Attached '+kind+': '+name}catch(e){info.textContent='Could not store that file on this device.'}};
+const pick=(accept,kind)=>{const f=document.createElement('input');f.type='file';f.accept=accept;f.onchange=async()=>{let x=f.files[0];if(!x)return;const nm=x.name||kind;if(kind==='photo'&&x.type.startsWith('image/'))x=await shrink(x);set(x,kind,nm)};f.click()};
+$('#mp').onclick=()=>pick('image/*','photo');$('#mf').onclick=()=>pick('*/*','file');
+$('#mv').onclick=async()=>{if(rec){rec.stop();return}try{const s=await navigator.mediaDevices.getUserMedia({audio:true}),ch=[];rec=new MediaRecorder(s);rec.ondataavailable=e=>ch.push(e.data);rec.onstop=()=>{s.getTracks().forEach(t=>t.stop());const mt=rec&&rec.mimeType;rec=null;const mv=$('#mv');if(!dlg.open||!mv)return;mv.textContent='Voice';set(new Blob(ch,{type:mt||'audio/webm'}),'voice','Voice note '+new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}))};rec.start();$('#mv').textContent='Stop'}catch(e){info.textContent='Microphone blocked. Allow it in your browser settings.'}}}
+async function mediaShow(it,el){if(!it.media||!el)return;try{const b=await bget(it.media.id);if(!b){el.textContent='The attached file is missing on this device.';return}const u=URL.createObjectURL(b),k=it.media.kind;el.innerHTML=k==='photo'?`<img src="${u}" alt="${E(it.title)}" style="max-width:100%;border-radius:10px;margin-top:12px">`:k==='voice'?`<audio controls src="${u}" style="width:100%;margin-top:12px"></audio>`:`<p><a href="${u}" download="${E(it.media.name)}">Download ${E(it.media.name)}</a></p>`}catch(e){el.textContent='Could not load the attachment.'}}
+const SB=[0,1,3,7,16],subj=i=>D.study.find(s=>s.id===i);let dueC=s=>s.cards.filter(c=>c.due<=dk());let mast=s=>s.cards.length?Math.round(100*s.cards.filter(c=>c.box>=3).length/s.cards.length):0;
+function study(){if(S.sj){const s=subj(S.sj);if(!s){S.sj=null;return study()}const dc=dueC(s).length;
+return`<p><button class="btn" data-a="sbk">Back</button></p><h1>${E(s.name)}</h1><p class="mu" style="margin:0">${pl(s.cards.length,'card')}, ${mast(s)}% mastered</p><div class="row2"><button class="btn p" data-a="rev" data-i="${s.id}" ${dc?'':'disabled'}>Review ${dc} due</button><button class="btn" data-a="addc" data-i="${s.id}">Add card</button><button class="btn" data-a="bulk" data-i="${s.id}">Paste many</button></div>`+(s.cards.length?sec('Cards','<ul>'+s.cards.map(c=>`<li class="row"><button class="rm" data-a="editc" data-i="${s.id}:${c.id}"><b>${E(c.q)}</b><small>${E(c.a)}</small></button></li>`).join('')+'</ul>'):empty('No cards yet','Add a question and answer, or paste many at once as Question | Answer, one per line.'))+`<div class="row2" style="margin-top:32px"><button class="btn d" data-a="delsub" data-i="${s.id}">Delete subject</button></div>`}
+const T=D.study.reduce((n,s)=>n+dueC(s).length,0);return`<div style="display:flex;justify-content:space-between;align-items:center"><h1>Study</h1><button class="btn p" data-a="newsub">New subject</button></div><p class="mu" style="margin:0">${T?pl(T,'card')+' due for review today.':'Nothing due today.'}</p>`+(D.study.length?'<ul>'+D.study.map(s=>`<li class="row"><button class="rm" data-a="sub" data-i="${s.id}"><b>${E(s.name)}</b><small>${pl(s.cards.length,'card')}, ${dueC(s).length} due, ${mast(s)}% mastered</small></button></li>`).join('')+'</ul>':empty('No subjects yet','Make a subject like Physics, then add flashcards. Hard cards come back sooner, easy ones later.'))}
+function review(sid){const s=subj(sid);const Q=dueC(s).sort(()=>Math.random()-.5),n=Q.length;let sh=0;const step=()=>{if(!Q.length){sheet(`<h2 style="margin:0">Done</h2><p>You reviewed ${n} cards. ${mast(s)}% of this subject is mastered.</p><div class="row2"><button class="btn p" id="rx">Close</button></div>`);$('#rx').onclick=()=>dlg.close();return}const c=Q[0];
+sheet(`<small>${Q.length} left</small><p style="font-size:24px;font-weight:600;margin:12px 0">${E(c.q)}</p>${sh?`<p style="font-size:20px">${E(c.a)}</p><div class="row2"><button class="btn d" data-g="0">Again</button><button class="btn p" data-g="1">Good</button><button class="btn" data-g="2">Easy</button></div>`:'<div class="row2"><button class="btn p" id="sa">Show answer</button></div>'}<div class="row2"><button class="btn" id="rq">Stop</button></div>`);
+$('#rq').onclick=()=>dlg.close();if(sh)dlg.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{const g=+b.dataset.g;c.box=g?Math.min(4,c.box+g):0;c.due=addD(SB[c.box]);save();Q.shift();if(!g)Q.push(c);sh=0;step()});else $('#sa').onclick=()=>{sh=1;step()}};step()}
+function cardSheet(sid,cid){const s=subj(sid),c=cid&&s.cards.find(x=>x.id===cid);sheet(`<h2 style="margin:0">${c?'Edit card':'New card'}</h2><label><span>Question</span><textarea id="cq" rows="3" maxlength="500">${E(c?c.q:'')}</textarea></label><label><span>Answer</span><textarea id="ca" rows="3" maxlength="1000">${E(c?c.a:'')}</textarea></label><div class="row2"><button class="btn p" id="cv">Save</button>${c?'<button class="btn d" id="cd">Delete</button>':''}<button class="btn" id="cz">Cancel</button></div>`);$('#cz').onclick=()=>dlg.close();
+$('#cv').onclick=()=>{const q=$('#cq').value.trim(),a=$('#ca').value.trim();if(!q||!a){toast('Fill in both question and answer.');return}if(c){c.q=q;c.a=a}else s.cards.push({id:uid(),q,a,box:0,due:dk()});save();dlg.close()};if(c)$('#cd').onclick=()=>{s.cards=s.cards.filter(x=>x!==c);save();dlg.close()}}
+function askAI(q0){let key='';try{key=localStorage.getItem('nexus.key')||''}catch(e){}
+sheet(`<h2 style="margin:0">Ask Nexus</h2><p class="mu">Answers from your own notes, tasks and links. Your question and the matching items are sent to Anthropic using your own API key. Nothing else leaves this device.</p><label><span>Your question</span><textarea id="aq" rows="3" maxlength="500">${E(q0||'')}</textarea></label><label><span>Anthropic API key</span><input id="ak" type="password" autocomplete="off" value="${E(key)}" placeholder="sk-ant-..."></label><div class="row2"><button class="btn p" id="ag">Ask</button><button class="btn" id="az">Close</button></div><div id="ar" style="margin-top:14px;white-space:pre-wrap" role="status"></div>`);$('#az').onclick=()=>dlg.close();
+$('#ag').onclick=async()=>{const q=$('#aq').value.trim(),k=$('#ak').value.trim(),o=$('#ar');if(!q){o.textContent='Type a question first.';return}if(!k){o.textContent='Paste your Anthropic API key to use Ask Nexus.';return}try{localStorage.setItem('nexus.key',k)}catch(e){}
+const tk=[...words(q)],top=D.items.map(i=>{const t=(i.title+' '+i.body+' '+i.tags.join(' ')+' '+pname(i.project)).toLowerCase();return{i,s:tk.filter(w=>t.includes(w)).length}}).filter(x=>x.s).sort((a,b)=>b.s-a.s).slice(0,8).map(x=>x.i),op=D.items.filter(i=>i.type==='task'&&!i.done).slice(0,10);
+const cx=[...new Set([...top,...op])].map(i=>`[${i.type}] ${i.title}${i.due?' (due '+i.due+')':''}${pname(i.project)?' project: '+pname(i.project):''}${i.body?'\n'+i.body.slice(0,500):''}${i.url?'\n'+i.url:''}`).join('\n---\n');
+o.textContent='Thinking...';$('#ag').disabled=true;
+try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-5-5',max_tokens:700,system:"You are Nexus, the user's personal assistant. Answer using only the saved items provided. If they do not contain the answer, say so. Be brief and practical.",messages:[{role:'user',content:'My saved items:\n'+cx+'\n\nQuestion: '+q}]})});const j=await res.json();o.textContent=res.ok?j.content.map(c=>c.text||'').join(''):(j.error&&j.error.message)||'The request failed.'}catch(e){o.textContent='Could not reach Anthropic. Check your connection and key.'}$('#ag').disabled=false}}
+Object.assign(A,{askai:()=>askAI(),sub:i=>{S.sj=i;render();scrollTo(0,0)},sbk:()=>{S.sj=null;render()},rev:i=>review(i),addc:i=>cardSheet(i),editc:i=>{const[a,b]=i.split(':');cardSheet(a,b)},
+newsub:()=>ask('New subject','',n=>{const s={id:uid(),name:n,cards:[]};D.study.push(s);save();S.sj=s.id;render()}),
+delsub:i=>{const s=subj(i);if(confirm('Delete '+s.name+' and its '+pl(s.cards.length,'card')+'?')){D.study=D.study.filter(x=>x.id!==i);S.sj=null;save();render()}},
+bulk:i=>{const s=subj(i);sheet(`<h2 style="margin:0">Paste many cards</h2><p class="mu">One per line: Question | Answer</p><textarea id="bk2" rows="8" maxlength="20000" aria-label="Cards"></textarea><div class="row2"><button class="btn p" id="bv">Add cards</button><button class="btn" id="bz">Cancel</button></div>`);$('#bz').onclick=()=>dlg.close();
+$('#bv').onclick=()=>{let n=0;$('#bk2').value.split('\n').forEach(l=>{const[q,...a]=l.split('|'),ans=a.join('|').trim();if(q&&q.trim()&&ans&&s.cards.length<2000){s.cards.push({id:uid(),q:q.trim(),a:ans,box:0,due:dk()});n++}});save();dlg.close();toast(pl(n,'card')+' added')}}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(b&&A[b.dataset.a])A[b.dataset.a](b.dataset.i)});
+document.addEventListener('submit',e=>{if(e.target.id==='qa'){e.preventDefault();const f=e.target.t,p=parse(f.value,'task');if(!p||!p.title){return}addItem(p);render();$('#m input')&&$('#m input').focus()}});
+$('#q').addEventListener('input',render);
+$('#q').addEventListener('keydown',e=>{if(e.key!=='Enter')return;const v=e.target.value.trim();if(!v)return;const aq=v.match(/^(?:ask\s+|\?\s*)(.+)$/i);if(aq){e.target.value='';render();askAI(aq[1]);return}
+const f=v.match(/^focus\s*(\d{1,3})?\b\s*(.*)$/i);if(f){const T=D.items.filter(i=>i.type==='task'&&!i.done);const hit=f[2]?search(f[2]).it.find(i=>i.type==='task'&&!i.done):T[0];if(hit){e.target.value='';render();focus(hit.id,+f[1]||25)}else toast('No open task to focus on. Add one first.');return}
+const pv=parse(v),r=search(v);if(pv&&(/^(task|todo|idea|note|remind)\b/i.test(v)||pv.url||(!r.it.length&&!r.pr.length))){const it=addItem(pv);if(it){e.target.value='';render();toast('Saved as '+it.type)}}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&F)stopF()});
+render();
+if('serviceWorker' in navigator){const reg=()=>navigator.serviceWorker.register('sw.js').catch(()=>{});document.readyState==='complete'?reg():addEventListener('load',reg)}
+</script>
+<script type="text/nx-defer" data-src="ai.js"></script>
+<script type="text/nx-defer" data-src="patch.js"></script>
+<script type="text/nx-defer" data-src="capture.js"></script>
+<script type="text/nx-defer" data-src="features.js"></script>
+<script type="text/nx-defer" data-src="dates.js"></script>
+<script type="text/nx-defer" data-src="palette.js"></script>
+<script type="text/nx-defer" data-src="plan.js"></script>
+<script type="text/nx-defer" data-src="tasks2.js"></script>
+<script type="text/nx-defer" data-src="boards.js"></script>
+<script type="text/nx-defer" data-src="projectchat.js"></script>
+<script type="text/nx-defer" data-src="titles.js"></script>
+<script type="text/nx-defer" data-src="phone.js"></script>
+<script type="text/nx-defer" data-src="native.js"></script>
+<script type="text/nx-defer" data-src="portability.js"></script>
+<script type="text/nx-defer" data-src="study.js"></script>
+<script type="text/nx-defer" data-src="smart.js"></script>
+<script type="text/nx-defer" data-src="sync.js"></script>
+<script type="text/nx-defer" data-src="sound.js"></script>
+<script type="text/nx-defer" data-src="launch.js"></script>
+</body></html>

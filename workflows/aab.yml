@@ -1,0 +1,62 @@
+name: Build Play Store bundle (AAB)
+
+# Manual only. Needs four repository secrets (Settings > Secrets and variables > Actions):
+#   NEXUS_KEYSTORE_BASE64    the upload keystore file, base64 encoded (base64 -w0 upload.jks)
+#   NEXUS_KEYSTORE_PASSWORD
+#   NEXUS_KEY_ALIAS
+#   NEXUS_KEY_PASSWORD
+# The bundle is kept as a private workflow artifact. It is never published as a release.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  aab:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Run the browser tests first
+        run: |
+          npm ci
+          npm test
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openjdk-21-jdk-headless aapt dalvik-exchange
+
+      - name: Check the signing secrets exist
+        env:
+          K: ${{ secrets.NEXUS_KEYSTORE_BASE64 }}
+          P: ${{ secrets.NEXUS_KEYSTORE_PASSWORD }}
+          A: ${{ secrets.NEXUS_KEY_ALIAS }}
+        run: |
+          for v in K P A; do
+            if [ -z "${!v}" ]; then echo "::error::Missing a signing secret. See the comment at the top of this workflow."; exit 1; fi
+          done
+
+      - name: Build and sign the bundle
+        env:
+          NEXUS_KEYSTORE_BASE64: ${{ secrets.NEXUS_KEYSTORE_BASE64 }}
+          NEXUS_KEYSTORE_PASSWORD: ${{ secrets.NEXUS_KEYSTORE_PASSWORD }}
+          NEXUS_KEY_ALIAS: ${{ secrets.NEXUS_KEY_ALIAS }}
+          NEXUS_KEY_PASSWORD: ${{ secrets.NEXUS_KEY_PASSWORD }}
+          VERSION_CODE: ${{ github.run_number }}
+        run: |
+          echo "$NEXUS_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          NEXUS_KEYSTORE="$RUNNER_TEMP/upload.jks" bash android/build-aab.sh
+          rm -f "$RUNNER_TEMP/upload.jks"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nexus-aab
+          path: android/build/nexus.aab
+          retention-days: 14

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="12dp"
+    android:background="@drawable/widget_bg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/widget_title"
+            android:textColor="#ECECEA"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+        <TextView
+            android:id="@+id/add"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="14dp"
+            android:paddingRight="14dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:text="@string/widget_add"
+            android:textColor="#0D0D0E"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:background="@drawable/widget_btn" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/empty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:text="@string/widget_empty"
+        android:textColor="#9A9A9F"
+        android:textSize="14sp" />
+
+    <LinearLayout android:id="@+id/r1" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+        <TextView android:id="@+id/c1" android:layout_width="40dp" android:layout_height="40dp" android:gravity="center" android:text="○" android:textColor="#ECECEA" android:textSize="22sp" />
+        <TextView android:id="@+id/t1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:maxLines="1" android:ellipsize="end" android:textColor="#ECECEA" android:textSize="15sp" />
+    </LinearLayout>
+    <LinearLayout android:id="@+id/r2" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+        <TextView android:id="@+id/c2" android:layout_width="40dp" android:layout_height="40dp" android:gravity="center" android:text="○" android:textColor="#ECECEA" android:textSize="22sp" />
+        <TextView android:id="@+id/t2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:maxLines="1" android:ellipsize="end" android:textColor="#ECECEA" android:textSize="15sp" />
+    </LinearLayout>
+    <LinearLayout android:id="@+id/r3" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+        <TextView android:id="@+id/c3" android:layout_width="40dp" android:layout_height="40dp" android:gravity="center" android:text="○" android:textColor="#ECECEA" android:textSize="22sp" />
+        <TextView android:id="@+id/t3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:maxLines="1" android:ellipsize="end" android:textColor="#ECECEA" android:textSize="15sp" />
+    </LinearLayout>
+    <LinearLayout android:id="@+id/r4" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+        <TextView android:id="@+id/c4" android:layout_width="40dp" android:layout_height="40dp" android:gravity="center" android:text="○" android:textColor="#ECECEA" android:textSize="22sp" />
+        <TextView android:id="@+id/t4" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:maxLines="1" android:ellipsize="end" android:textColor="#ECECEA" android:textSize="15sp" />
+    </LinearLayout>
+</LinearLayout>
