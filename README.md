@@ -1,4 +1,4 @@
-# Nexus 3.3
+# Nexus 4
 
 Made by Mohammed Abdul Nayeem.
 
@@ -51,7 +51,7 @@ File names are case-sensitive on GitHub Pages. Keep them exactly as above.
 ## Put it on GitHub Pages
 1. Upload everything in this folder to the repo root (delete any old copies first).
 2. Repo Settings > Pages > Source: "Deploy from a branch" > Branch: `main`, folder `/ (root)` > Save.
-3. After a minute your app is live at `https://YOUR-USERNAME.github.io/nexus-v3.3/`.
+3. After a minute your app is live at `https://YOUR-USERNAME.github.io/nexus-v4/`.
 
 ## Install on your phone
 Open that URL in Chrome on Android, then menu > Install app (or Add to Home screen). On iPhone use Safari > Share > Add to Home Screen.
