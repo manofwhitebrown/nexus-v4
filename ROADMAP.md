@@ -17,11 +17,11 @@ Status: done, partial, not started.
 | 11 Command center | done | Top bar commands, command sheet, pull down from the top | Voice commands |
 | 12 Focus mode              | done    | Timer that survives screen lock, pause, logging of minutes, a disc that shrinks as time runs out, **5 minute break, screen wake lock** | Long-break cycles |
 | 13 Recap | done | Today ring, 7-day chart, week totals, tomorrow preview | Monthly recap |
-| 14 Personalization | partial | Dark, light, match phone; four accents; three text sizes | Wallpaper, layouts, navigation style. Since 3.7 the accent colour reaches every tab, including the Library (it used to reach almost nothing) |
+| 14 Personalization | partial | Dark, light, match phone; four accents; three text sizes; **the Android floating bubble and its note panel follow the theme and accent live**; **a Settings gear in the header on every tab** | Wallpaper, layouts, navigation style. Since 3.7 the accent colour reaches every tab, including the Library (it used to reach almost nothing) |
 | 15 The Nexus (connections) | done | Automatic related items plus links you make, with backlinks | Graph view |
 | 16 Smart collections | done | Unfinished, overdue, saved, ideas, this week, untouched, study material, recently studied, exam material, **high priority, tasks with open steps, your own rules** | Rules in backups and sync |
 | 17 Privacy | done | Local-first, PIN lock, encrypted backups, backup reminders, delete-all that wipes everything (vault, trash, restore points, attachments), **encryption at rest** with a recovery key, **sync** through a folder or your own Dropbox with end-to-end encryption, merge a backup file | Sync through Google Drive, background sync when the app is closed |
-| 18 Tech foundation         | partial | Installable PWA, offline, shortcuts, share target, Android app with floating bubble, widget, quick-settings tile, native reminders, calendar and speech bridges | Launcher mode, sync |
+| 18 Tech foundation         | partial | Installable PWA, offline, shortcuts, share target, Android app with floating bubble (**tucks into the screen edge, follows theme, accent and language live**), the phone's Back button closes open sheets, widget, quick-settings tile, native reminders, calendar and speech bridges | Launcher mode, sync |
 | 19 Sound | done | Soft synthesized tap, tick, done, open and close sounds; three styles and volumes; mute from the header, the `m` key or Settings; never while typing | Native-speaker read of the new Hindi and Telugu words; a longer focus-timer chime |
 
 The PIN lock keeps casual snoopers out and does not encrypt anything. Encryption at rest (Settings > Encryption) does.
@@ -59,6 +59,8 @@ Started. The Android app in `android/` is a native wrapper (Java, built without 
 
 Also built: a home-screen widget, quick-settings tile, quick add over the lock screen, launcher shortcuts, alarms for task reminders, and bridges for dictation and the phone calendar.
 
+The bubble rests tucked into a screen edge (tap the tab to slide it out, tap again to write), and its colours and words follow the theme, accent and language chosen in Nexus without a restart. The phone's Back button closes an open sheet before it leaves the app.
+
 Not done: a launcher mode, and a full native rewrite in Kotlin with Compose and Room. The APK and the Play bundle both build and validate in CI-style runs, but neither has been run on a device since Phase 4.
 
 ## Layout plan (from the UI research notes)
@@ -70,10 +72,25 @@ Not done: a launcher mode, and a full native rewrite in Kotlin with Compose and 
 | Quick add everywhere | Capture, the Add box on Tasks, Ctrl+K and `c`, and now Ctrl+Enter (Cmd+Enter) for Capture; widget, tile and lock-screen add on Android. |
 | Priorities, filters and visual progress | Priorities, a priority filter and sort, steps with a count, the streak line, the Recap ring and bars. |
 | Search anchors the experience | Search bar and command palette on every screen; typo-tolerant search. |
-| Progressive disclosure | Encryption, sync, API key and reminder time live in Settings; the main screens show only the daily items. |
+| Progressive disclosure | Encryption, sync, API key and reminder time live in Settings; the main screens show only the daily items. A gear in the header opens Settings from any tab. |
 | Minimal Focus mode | Focus hides everything but the task and the shrinking disc; a break follows. |
 
 ## Version 4.0
 Done: priorities, steps, Week view with dragging, Board view, your own rules (in backups and sync), folders, inline PDF viewer, Focus breaks and wake lock, reminders for dated tasks, project chats, page titles for links (Android). Backup restore keeps all the new fields.
 
 Not done, and why: voice-note transcription (browsers and Android only transcribe live speech, not recordings), Google Drive sync (needs your own Google OAuth client), background sync with the app closed and launcher mode (native Android projects needing a phone to verify).
+
+## Since 4.0: fixes from using it on a phone
+Done:
+- **Bubble theme.** The bubble's colours were fixed dark. Nexus now sends the page's real colours (theme and accent) to Android and the bubble, its panel and the hide target repaint at once.
+- **Bubble language.** The bubble chose its language once, when it started, so switching language back left it stuck. Text is now looked up fresh each time, and the notification updates too.
+- **Bubble at rest.** It tucks into the left or right edge with only a small tab showing; tap to slide out, tap again for the panel, and it tucks back in by itself. It remembers its side and height and survives rotation.
+- **Back button.** Back used to leave the app from Capture, Add task or Settings. It now closes the open sheet first.
+- **Settings gear.** A gear in the sticky header reaches Settings from every tab.
+- **Download link.** The "Download the Android app" button in a browser pointed at the old `nexus-v3.3` releases; it now points at `nexus-v4`.
+
+Not done, and why:
+- The tucked-in bubble, the new colours and the Back button are covered by the tests and compile against the Android SDK, but have not been run on a real phone.
+- Quick add (the small box over the lock screen) and the home-screen widget still use fixed colours; only the bubble follows the accent.
+- Back on a main tab such as Tasks or Library still leaves the app instead of returning to Home.
+- The longer Settings hint for the bubble has Hindi and Telugu written by Claude, not read by a native speaker.

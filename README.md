@@ -1,4 +1,4 @@
-# Nexus 4
+# Nexus 4.0
 
 Made by Mohammed Abdul Nayeem.
 
@@ -10,7 +10,7 @@ A personal system for tasks, notes, links, projects, study and focus, all connec
 
 | File | Purpose |
 | --- | --- |
-| `index.html` | The whole app (UI and logic) |
+| `index.html` | The whole app (UI and logic), including the Settings gear in the header |
 | `patch.js` | Second layer loaded after the app: backups with attachments, encrypted API key, Ask Nexus actions, file reading |
 | `vault.js` | Loads first, in `<head>`. Optional encryption at rest (passphrase, recovery key, unlock screen), and the loader that starts every other script only after unlock. Shown in Settings > Encryption |
 | `safety.js` | Safety net, loads right after the vault: 30-day trash, automatic restore points, damaged-data recovery, an IndexedDB safe copy of every save. Everything it stores is sealed when encryption is on. Shown in Settings > Safety net |
@@ -37,7 +37,7 @@ A personal system for tasks, notes, links, projects, study and focus, all connec
 | `features.js` | Files, recap, command center, study chapters, project details, repeating tasks, links, app lock, encrypted backups, appearance |
 | `sound.js` | Soft tap sounds made on the device (no audio files): three styles, three volumes, a mute button next to the search bar, the `m` key, and Settings > Sound. Never plays while you type |
 | `theme.css` | The graphite theme (monochrome, matches the logo; loaded after the app's own CSS) |
-| `native.js` | Android app bridge: imports notes, recordings and screenshots from the floating bubble, bubble switch in Settings, saves backups to Downloads |
+| `native.js` | Android app bridge: imports notes, recordings and screenshots from the floating bubble, bubble switch in Settings, saves backups to Downloads, tells Android the theme and accent colours so the bubble matches the app, and lets the phone's Back button close an open sheet |
 | `sw.js` | Offline support and notification taps |
 | `android/` | Source for the Android app (a web view around this app plus the floating bubble) |
 | `.github/workflows/android.yml` | Runs the tests, builds the Android app on GitHub and publishes it as the latest release |
@@ -57,7 +57,7 @@ File names are case-sensitive on GitHub Pages. Keep them exactly as above.
 Open that URL in Chrome on Android, then menu > Install app (or Add to Home screen). On iPhone use Safari > Share > Add to Home Screen.
 
 ## Updating
-Edit the files, then bump `VERSION` in `sw.js` (for example `nexus-3.4.2`) so installed copies refresh.
+Edit the files, then bump `VERSION` in `sw.js` (for example `nexus-4.0.1`) so installed copies refresh.
 
 ## Android app with the floating bubble
 A web page cannot float over other apps, so the Android app does it natively. It bundles this whole app, works offline, and adds a small bubble you can tap from any app to write a note. Notes wait in a local inbox and appear in Nexus the next time you open it, tagged `bubble`.
@@ -65,13 +65,18 @@ A web page cannot float over other apps, so the Android app does it natively. It
 1. Every time you change the web files or `android/`, GitHub builds the app (Actions tab > Build Android app). You can also run it by hand with "Run workflow".
 2. Download `nexus.apk` from the Releases page on your phone and open it. Android asks once to allow installs from your browser.
 3. In the app: Settings > Floating bubble > Allow and turn on, then switch on "Display over other apps" for Nexus.
-4. Tap the bubble for a panel with a note box, **Record voice** and **Screenshot**. A recording shows a red dot on the bubble until you stop it.
+4. The bubble rests tucked into the left or right edge of the screen, so only a small tab shows and it is never in front of what you are reading. **Tap the tab** to slide the bubble out, then **tap it again** for a panel with a note box, **Record voice** and **Screenshot**. It tucks itself back in after a few seconds, after you close the panel and after a screenshot. Drag it up or down to move it, drop it near either side to keep it there, and drag it to the bottom target to hide it. It remembers its side and height, and stays tucked in when you rotate the phone.
+5. A recording shows a red dot on the bubble until you stop it.
 
 **Recording** needs the microphone permission, which Android asks for the first time you tap Record. **Screenshots** need Android's screen capture permission: tap Screenshot, allow it, and on Android 14 and newer choose **Entire screen** (choosing a single app only captures that app). While screenshots are ready, Android shows its normal screen-capture icon in the status bar. The bubble hides itself for a moment so it is not in the picture. Recordings and screenshots wait in the inbox and appear in Nexus as voice and photo items tagged `bubble`.
 
 The app is signed with the key in `android/debug.keystore`, which is public. That is fine for a personal app you install yourself, and it lets new versions install over old ones. It is not suitable for the Play Store (see Releasing to Google Play below). The app has its own storage, separate from the browser: use Export backup in one and Restore backup in the other to move your items.
 
 To build it yourself: `sudo apt-get install -y openjdk-21-jdk-headless aapt apksigner zipalign dalvik-exchange` and run `android/build.sh`.
+
+### Theme and language in the bubble
+
+The bubble and its note panel use the colours of the app: dark or light, and the accent you picked in Settings > Appearance. Nexus reads the real colours from the page and hands them to Android, so a change shows up in the bubble straight away (the colours are kept for the next time the bubble starts). The bubble's words follow the language in the same way: switching language in Nexus, in either direction, changes the bubble, its panel and its notification at once, with no restart.
 
 ### Language in the Android app
 
@@ -96,6 +101,12 @@ Play needs a signed Android App Bundle (`.aab`), not the debug-signed APK above,
 - **Reminders.** A task with a start time rings at that time with a **Done** button, even when Nexus is closed. Android may deliver one a few minutes late to save battery; Nexus uses inexact alarms on purpose so no special permission is needed. Reminders are put back after a restart or an update.
 - **Dictation.** In Capture, **Dictate** opens Android's speech screen (English, Hindi or Telugu). Which languages work depends on the speech service on your phone.
 - **Calendar.** On the Plan screen, **Allow calendar** shows events from your phone's calendars next to your tasks. Nexus only reads them on the phone and never saves them.
+
+## Settings from every tab
+Settings holds most of the controls, so a **gear** sits in the top-right corner of the header, next to the sound button. The header stays in place as you scroll, so Settings is one tap away from Home, Tasks, Library, Study and More, without going back to Home first.
+
+## The Back button on Android
+Back closes whatever sheet is open (Capture, Add task, Settings and so on) and keeps you in Nexus. Only when nothing is open does it go back in history, and only then does it leave the app. The PIN lock screen is left alone so Back cannot be used to get past it, and Back does not end a running Focus timer.
 
 ## Sound
 Taps, ticks and sheets make a short, soft sound. They are made on the device with the browser's audio engine, so nothing is downloaded and it works offline. Settings > Sound has On/Off, three styles (Soft pop, Wood tap, Glass) and three volumes. For quick quiet, tap the speaker next to the search bar or press **m** (not while typing or with a sheet open). Sounds never play while you type, and never before your first tap. The choice is kept on the device. The Hindi and Telugu words for this section have not been read by a native speaker yet.

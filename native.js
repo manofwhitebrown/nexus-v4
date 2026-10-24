@@ -3,7 +3,7 @@
    bubble on and off, and saves backups and downloads to the Downloads folder.
    In a normal browser it only offers the Android download in Settings. */
 (()=>{
-const N=window.NexusNative,APK='https://github.com/manofwhitebrown/nexus-v3.3/releases/latest/download/nexus.apk';
+const N=window.NexusNative,APK='https://github.com/manofwhitebrown/nexus-v4/releases/latest/download/nexus.apk';
 
 if(N){
   /* The window and the system bars belong to Android, not to the page. Tell them which theme the app is in,
