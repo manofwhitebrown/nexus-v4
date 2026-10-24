@@ -50,7 +50,8 @@ const label=t=>{const td=dk(),s=T.slot(t),tm=s?T.fmt(s.s):'';
 const snapshot=()=>{const td=dk(),rk=t=>t.due&&t.due<td?0:t.due===td?1:t.promise?2:t.due?3:4;
   return D.items.filter(i=>i.type==='task'&&!i.done)
     .sort((a,b)=>rk(a)-rk(b)||(a.due||'9').localeCompare(b.due||'9')||(a.tm||'99:99').localeCompare(b.tm||'99:99')||a.created.localeCompare(b.created))
-    .slice(0,6).map(t=>({id:t.id,t:String(t.title||'Untitled').slice(0,60),d:label(t)}))};
+    .flatMap(t=>{const r=[{id:t.id,t:String(t.title||'Untitled').slice(0,60),d:label(t)}],st=(Array.isArray(t.subs)?t.subs:[]).find(s=>s&&!s.d&&s.t);   /* the next open step sits under its task */
+      if(st)r.push({id:t.id,s:String(st.id),t:String(st.t).slice(0,60),d:''});return r}).slice(0,6)};
 const RDK='nexus.remdef'+NS,defTm=()=>{try{const v=localStorage.getItem(RDK);return v===null?'09:00':v}catch(e){return'09:00'}};
 const reminders=()=>{const from=Date.now()+5e3,dt=defTm(),open=D.items.filter(i=>i.type==='task'&&!i.done);
   const timed=open.filter(i=>T.slot(i)).map(i=>({i,at:T.at(i),tm:T.fmt(T.slot(i).s)}));

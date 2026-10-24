@@ -258,6 +258,15 @@ await t('link preview pictures: asked once for a link, drawn in its row, and tur
   assert.ok(p.w.document.querySelector('#m li.row img.nxth'),'the picture is in the row');
   p.ev(`localStorage.setItem('nexus.thumbs'+NS,'off')`);add(p,{type:'link',title:'Other',url:'https://example.org/b'});p.ev('nxThumbQueue()');
   assert.equal(p.w.__calls.filter(c=>c[0]==='thumb').length,1,'nothing is fetched when the switch is off');p.close()});
+await t('widget steps: the next open step sits under its task, and a tick from the widget completes only that step',async()=>{
+  const br=newBrowser(),p=await boot(br,{pre:stub()}),id=add(p,{title:'Pack bag',due:p.ev('dk()')});
+  p.ev(`upd('${id}',{subs:[{id:'s1',t:'Passport',d:true},{id:'s2',t:'Charger',d:false},{id:'s3',t:'Snacks',d:false}]})`);
+  const snap=JSON.parse(p.ev('JSON.stringify(nxSnapshot())'));
+  assert.equal(snap.length,2);assert.equal(snap[1].s,'s2');assert.equal(snap[1].t,'Charger');assert.equal(snap[1].id,id);
+  p.w.__inbox=[{k:'step',id,s:'s2',t:'',ts:1},{k:'step',id,s:'nope',t:'',ts:2}];await p.w.nxInbox();
+  const st=JSON.parse(p.ev(`JSON.stringify(get('${id}').subs.map(s=>s.d))`));assert.deepEqual(st,[true,true,false]);
+  assert.equal(p.ev(`get('${id}').done`),false,'the task itself stays open');
+  assert.equal(JSON.parse(p.ev('JSON.stringify(nxSnapshot())'))[1].s,'s3','the next step takes its place');p.close()});
 await t('the widget list and the reminders are sent to Android and kept current',async()=>{
   const br=newBrowser(),p=await boot(br,{pre:stub()}),td=p.ev('dk()'),tmr=p.ev('addD(1)');
   add(p,{title:'Overdue thing',due:p.ev('addD(-3)')});const a=add(p,{title:'Tomorrow 9',due:tmr}),b=add(p,{title:'Tomorrow 8',due:tmr}),done=add(p,{title:'Done one',due:tmr});

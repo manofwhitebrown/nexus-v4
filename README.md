@@ -96,6 +96,7 @@ Play needs a signed Android App Bundle (`.aab`), not the debug-signed APK above,
 ### Widget, quick add, shortcuts and reminders (Android app)
 
 - **Home-screen widget.** Long-press the home screen, choose Widgets, then Nexus. It shows your next tasks with a tick for each, and a **+ Add** button. Ticks are applied the next time Nexus opens.
+- **Steps on the widget.** A task with open steps shows its next step under it (marked with an arrow). Tick it and only that step is done; the next one takes its place when Nexus next opens.
 - **Quick add.** The widget's **+ Add**, the **Quick note** tile in the notification shade (edit the tiles to add it) and the **Quick add** launcher shortcut (long-press the app icon) all open a small box that also works over the lock screen. Words like "tomorrow at 5pm" are understood when Nexus next opens.
 - **Share to Nexus.** In any app, Share > Nexus. Text becomes a note; photos, audio, video, PDFs, text files and Word or Excel files are copied into the app and saved as items tagged `shared` (up to 25 MB each, 20 at a time).
 - **Link pictures.** A saved link gets a small preview picture (the page's own og:image, shrunk to 112 px) beside its title. Settings has a switch. Only in the Android app.

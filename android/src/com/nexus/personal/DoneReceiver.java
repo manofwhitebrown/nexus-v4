@@ -13,6 +13,13 @@ public class DoneReceiver extends BroadcastReceiver {
     public void onReceive(Context c, Intent i) {
         String id = i.getStringExtra("id");
         if (id == null || id.length() == 0) return;
+        String sid = i.getStringExtra("sid");
+        if (sid != null && sid.length() > 0) { // one step, not the whole task
+            Inbox.addStep(c, id, sid);
+            Snap.remove(c, id, sid);
+            NexusWidget.refresh(c);
+            return;
+        }
         Inbox.addDone(c, id);
         Snap.remove(c, id);
         Reminders.cancel(c, id);

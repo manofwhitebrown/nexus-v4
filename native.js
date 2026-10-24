@@ -52,6 +52,7 @@ if(N){
       if(o&&(o.k==='screenshot'||o.k==='voice')){try{if(await media(o))files++}catch(e){}continue}
       if(o&&o.k==='shared'){try{if(await shared(o))files++}catch(e){}continue}
       /* A tick from the home-screen widget or a reminder's Done button. */
+      if(o&&o.k==='step'){const it=get(String(o.id||''));const st=it&&Array.isArray(it.subs)?it.subs.find(s=>s.id===o.s):null;if(st&&!st.d){upd(it.id,{subs:it.subs.map(s=>s.id===o.s?{...s,d:true}:s)});ticks++}continue}
       if(o&&o.k==='done'){const it=get(String(o.id||''));if(it&&it.type==='task'&&!it.done){upd(it.id,{done:true});ticks++}continue}
       const t=String(o&&o.t||'').trim().slice(0,5000);if(!t)continue;
       const k=o.k==='note'||o.k==='task'||o.k==='idea'?o.k:null,p=parse(t,k);if(!p)continue;

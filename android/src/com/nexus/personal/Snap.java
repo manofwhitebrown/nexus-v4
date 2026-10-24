@@ -26,6 +26,7 @@ final class Snap {
                 s.put("id", o.optString("id"));
                 s.put("t", o.optString("t"));
                 s.put("d", o.optString("d"));
+                if (o.optString("s").length() > 0) s.put("s", o.optString("s")); // a step row
                 out.put(s);
             }
             c.getSharedPreferences("nexus", 0).edit().putString("snap", out.toString()).apply();
@@ -35,10 +36,18 @@ final class Snap {
 
     /** Takes a task off the widget straight away, before the web app has processed the tick. */
     static void remove(Context c, String id) {
+        remove(c, id, "");
+    }
+
+    /** With a step id, takes off only that step row; without, the task and any step rows under it. */
+    static void remove(Context c, String id, String sid) {
         try {
             JSONArray a = read(c), out = new JSONArray();
             for (int i = 0; i < a.length(); i++) {
-                if (!id.equals(a.getJSONObject(i).optString("id"))) out.put(a.getJSONObject(i));
+                JSONObject o = a.getJSONObject(i);
+                boolean hit = id.equals(o.optString("id"))
+                        && (sid.length() == 0 || sid.equals(o.optString("s")));
+                if (!hit) out.put(o);
             }
             c.getSharedPreferences("nexus", 0).edit().putString("snap", out.toString()).apply();
         } catch (Exception ignored) {

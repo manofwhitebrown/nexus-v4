@@ -53,11 +53,14 @@ public class NexusWidget extends AppWidgetProvider {
             try {
                 JSONObject o = a.getJSONObject(i);
                 String id = o.optString("id"), d = o.optString("d");
-                String t = o.optString("t") + (d.length() > 0 ? "  " + d : "");
+                String sid = o.optString("s");
+                String t = (sid.length() > 0 ? "\u21B3 " : "") + o.optString("t") + (d.length() > 0 ? "  " + d : "");
                 v.setViewVisibility(ROW[i], View.VISIBLE);
                 v.setTextViewText(TEXT[i], t);
                 Intent done = new Intent(c, DoneReceiver.class).setAction(DoneReceiver.ACTION)
-                        .setData(Uri.parse("nexus://done/" + id)).putExtra("id", id);
+                        .setData(Uri.parse("nexus://done/" + id + (sid.length() > 0 ? "/" + sid : "")))
+                        .putExtra("id", id);
+                if (sid.length() > 0) done.putExtra("sid", sid);
                 v.setOnClickPendingIntent(CHECK[i], PendingIntent.getBroadcast(c, 0, done, FLAGS));
                 v.setOnClickPendingIntent(TEXT[i], PendingIntent.getActivity(c, 2,
                         new Intent(c, MainActivity.class), FLAGS));

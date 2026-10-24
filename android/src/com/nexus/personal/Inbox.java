@@ -43,6 +43,22 @@ final class Inbox {
         }
     }
 
+    /** A step ticked off from the widget. The web app applies it when it next opens. */
+    static synchronized void addStep(Context c, String id, String stepId) {
+        try {
+            JSONArray a = read(c);
+            JSONObject o = new JSONObject();
+            o.put("t", "");
+            o.put("k", "step");
+            o.put("id", id);
+            o.put("s", stepId);
+            o.put("ts", System.currentTimeMillis());
+            a.put(o);
+            write(c, a);
+        } catch (Exception ignored) {
+        }
+    }
+
     static File mediaDir(Context c) {
         File d = new File(c.getFilesDir(), "inbox_media");
         if (!d.exists()) d.mkdirs();
