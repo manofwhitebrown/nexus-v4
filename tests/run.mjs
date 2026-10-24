@@ -249,6 +249,15 @@ await t('files shared to the Android app arrive as items: a photo and a PDF are 
   const a=L.find(x=>x.k==='photo'),f=L.find(x=>x.k==='file');
   assert.ok(a&&a.m==='image/png'&&a.n==='holiday photo.png'&&a.t==='holiday photo');assert.ok(f&&f.m==='application/pdf'&&f.n==='notes.pdf');
   assert.equal(p.w.__inbox.length,0,'the inbox is acknowledged');p.close()});
+await t('link preview pictures: asked once for a link, drawn in its row, and turned off by the switch',async()=>{
+  const br=newBrowser(),p=await boot(br,{pre:stub({fetchThumb:(id,u)=>{p.w.__calls.push(['thumb',id,u])}})});
+  const id=add(p,{type:'link',title:'Example',url:'https://example.com/a'});
+  p.ev('nxThumbQueue()');p.ev('nxThumbQueue()');
+  assert.equal(p.w.__calls.filter(c=>c[0]==='thumb').length,1,'asked once, not again the same day');
+  p.ev(`get('${id}').th='data:image/jpeg;base64,/9j/4AAQ';A.tab('notes')`);
+  assert.ok(p.w.document.querySelector('#m li.row img.nxth'),'the picture is in the row');
+  p.ev(`localStorage.setItem('nexus.thumbs'+NS,'off')`);add(p,{type:'link',title:'Other',url:'https://example.org/b'});p.ev('nxThumbQueue()');
+  assert.equal(p.w.__calls.filter(c=>c[0]==='thumb').length,1,'nothing is fetched when the switch is off');p.close()});
 await t('the widget list and the reminders are sent to Android and kept current',async()=>{
   const br=newBrowser(),p=await boot(br,{pre:stub()}),td=p.ev('dk()'),tmr=p.ev('addD(1)');
   add(p,{title:'Overdue thing',due:p.ev('addD(-3)')});const a=add(p,{title:'Tomorrow 9',due:tmr}),b=add(p,{title:'Tomorrow 8',due:tmr}),done=add(p,{title:'Done one',due:tmr});

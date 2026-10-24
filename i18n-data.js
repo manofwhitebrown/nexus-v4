@@ -35,6 +35,8 @@ A(["Ask about", "इसके बारे में पूछें", "దీ�
 ["Set up AI first: open Ask Nexus and add a key or a free provider.", "पहले AI सेट करें: Ask Nexus खोलें और कुंजी या मुफ़्त प्रदाता जोड़ें।", "ముందు AI సెటప్ చేయండి: Ask Nexus తెరిచి కీ లేదా ఉచిత ప్రొవైడర్‌ను జోడించండి."],
 ["No answer came back.", "कोई उत्तर नहीं आया।", "సమాధానం రాలేదు."],
 ["Could not reach the AI service. Check your connection and key.", "AI सेवा तक नहीं पहुँच सका। कनेक्शन और कुंजी जाँचें।", "AI సేవను చేరుకోలేకపోయాం. కనెక్షన్ మరియు కీని తనిఖీ చేయండి."],
+["Show preview pictures for saved links", "सहेजे लिंक के लिए पूर्वावलोकन चित्र दिखाएँ", "సేవ్ చేసిన లింక్‌ల ప్రివ్యూ చిత్రాలను చూపించు"],
+["Contacts the saved page and the site that holds its picture, from this phone, and keeps a small copy on the link.", "इस फ़ोन से सहेजे पेज और उसका चित्र रखने वाली साइट से संपर्क करता है, और लिंक पर एक छोटी प्रति रखता है।", "ఈ ఫోన్ నుండి సేవ్ చేసిన పేజీని మరియు దాని చిత్రాన్ని ఉంచే సైట్‌ను సంప్రదిస్తుంది, మరియు లింక్‌పై చిన్న కాపీని ఉంచుతుంది."],
 ["Look up page titles for saved links", "सहेजे लिंक के पेज शीर्षक खोजें", "సేవ్ చేసిన లింక్‌ల పేజీ శీర్షికలను వెతకండి"],
 ["Contacts only the saved page, from this phone, and only when a link has no title of its own.", "केवल सहेजे गए पेज से, इसी फ़ोन से संपर्क करता है, और केवल तब जब लिंक का अपना शीर्षक न हो।", "ఈ ఫోన్ నుండి, సేవ్ చేసిన పేజీని మాత్రమే సంప్రదిస్తుంది, లింక్‌కు సొంత శీర్షిక లేనప్పుడు మాత్రమే."]);
 

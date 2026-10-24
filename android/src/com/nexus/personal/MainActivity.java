@@ -497,6 +497,23 @@ public class MainActivity extends Activity {
             }).start();
         }
 
+        /** The preview picture of a saved link, sent back to the page as a data URL (empty when none). */
+        @JavascriptInterface
+        public void fetchThumb(final String id, final String url) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    final String d = Thumbs.fetch(url);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (web != null) web.evaluateJavascript("window.nxThumb&&window.nxThumb(" + JSONObject.quote(id) + "," + JSONObject.quote(d) + ")", null);
+                        }
+                    });
+                }
+            }).start();
+        }
+
         @JavascriptInterface
         public void setTheme(final String theme) {
             final boolean light = "light".equals(theme);
