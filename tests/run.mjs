@@ -494,6 +494,7 @@ await import('./tasks2.mjs');
 await import('./boards.mjs');
 await import('./projectchat.mjs');
 await import('./sound.mjs');
+await import('./v41.mjs');
 
 console.log(`\n${state.pass} passed, ${state.fail} failed`);
 if(state.fail){console.log('Failed: '+state.failed.join('; '));process.exit(1)}

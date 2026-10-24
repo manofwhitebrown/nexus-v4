@@ -22,3 +22,6 @@
 
 ## Only you can do
 A native-speaker read of the new Sound words (Hindi and Telugu), a Play Console account, your own release keystore and the four GitHub secrets, screenshots and the feature graphic, a contact email for the listing.
+
+## Since 4.1
+Zip import, attachments, long breaks, monthly recap, question bank, week view with times, graph, look options, PDF search and the AI buttons are built. See ROADMAP.md, Version 4.1, for the limits.
