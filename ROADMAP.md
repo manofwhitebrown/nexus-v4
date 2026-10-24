@@ -99,3 +99,11 @@ Not done, and why:
 Done: Focus long-break cycles, monthly recap, a separate Study question bank, Week view with times, graph of connections, wallpaper, layout and navigation options, PDF text search with a bundled pdf.js (`vendor/`), AI card and question buttons, optional AI auto-filing, zip import (Notion, Obsidian, Takeout, Evernote) and attachments from Evernote, Keep and Markdown notes. Code is in `v41.js` and `import2.js`; tests are in `tests/v41.mjs`.
 
 Honest limits: the AI features are tested only against a fake provider, so real answers need your own key and are unchecked. PDF reading is tested with a stand-in reader; the real pdf.js has not been run in a browser here. Scanned PDFs have no text to find. Zip import needs a browser with `DecompressionStream` for compressed zips. Nothing in 4.1 has been tried on a phone.
+
+## Version 4.2
+Done and tested (`v42.js`, `tests/v42.mjs`, plus the share handler in `sw.js` and `manifest.webmanifest`):
+- **Files shared from other apps.** The web share target now takes files as well as text and links (PDFs, pictures, audio, text, Word and Excel, up to 10 files of 8 MB). Each becomes a note tagged "shared" with the file attached. Text and link sharing works as before.
+- **Voice commands.** A "Speak a command" button in the command palette (Ctrl+K). English phrases: "add task buy milk", "remind me to call mom", "note that the lab is on friday", "go to tasks", "search physics", "focus on essay", "mark milk done", "ask ...".
+
+Not done, because they are Android app code that cannot be built or tried without a phone and the Android SDK: **steps from the widget, link thumbnails, background sync, and launcher mode.** Link thumbnails cannot be done in the web app at all (browsers block reading other sites' pictures). Launcher mode can stop the phone's home screen from working if it is wrong, so it should only be added with a phone in hand to test.
+Sharing files from other apps through the Android app (not the installed web app) also still needs a change in the Android code.
