@@ -214,3 +214,7 @@ nav button[aria-current=page]{color:var(--ac)}
 :root[data-accent=clay]{--na:#4A3024;--nb:#27180F}
 /* Library rows: a thin accent bar on the row you are pressing */
 #m li.row:has(.rm:active){box-shadow:inset 3px 0 0 var(--ac)}
+
+/* Settings gear: always reachable in the top-right corner of the sticky header, on every tab.
+   order puts it after the sound button so it sits in the very corner. */
+.nxg{order:99;margin-right:-6px;color:var(--ink)}

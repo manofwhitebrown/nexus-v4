@@ -150,6 +150,16 @@ await t('the phone Back button closes an open sheet first instead of leaving the
   const j=fs.readFileSync(new URL('../android/src/com/nexus/personal/MainActivity.java',import.meta.url),'utf8');
   assert.match(j,/window\.nxBack&&window\.nxBack\(\)/);p.close()});
 
+await t('a Settings gear sits in the header on every tab and opens Settings',async()=>{
+  const p=await boot2(newBrowser());const d=p.w.document;
+  const g=d.querySelector('header .hd #nx-set');assert.ok(g,'gear');assert.equal(g.getAttribute('aria-label'),'Settings');
+  for(const tab of ['home','tasks','notes','browse']){
+    p.ev(`A.tab('${tab}')`);await p.sleep(40);
+    d.querySelector('#nx-set').click();await p.sleep(60);
+    assert.equal(d.querySelector('#dlg').open,true,tab);assert.match(d.querySelector('#dlg').innerHTML,/Settings/);
+    d.querySelector('#dlg').close();await p.sleep(20)}
+  p.close()});
+
 await t('the Android code has a setTheme bridge that colours the window and both system bars',async()=>{
   const j=fs.readFileSync(new URL('../android/src/com/nexus/personal/MainActivity.java',import.meta.url),'utf8');
   assert.match(j,/public void setTheme\(final String theme\)/);assert.match(j,/setStatusBarColor\(bg\)/);assert.match(j,/setNavigationBarColor\(bg\)/);assert.match(j,/rootView\.setBackgroundColor\(bg\)/)});
