@@ -124,6 +124,23 @@ await t('inside the Android app the window and system bars are told the theme, a
   p.ev(`localStorage.setItem(TH,'light');applyTh()`);await p.sleep(30);assert.equal(calls.at(-1),'light');
   p.ev(`localStorage.setItem(TH,'dark');applyTh()`);await p.sleep(30);assert.equal(calls.at(-1),'dark');p.close()});
 
+await t('the floating bubble is sent the real theme and accent colours, at start and whenever either changes',async()=>{
+  const pal=[],N=new Proxy({setPalette:v=>pal.push(JSON.parse(v))},{get:(o,k)=>k in o?o[k]:(()=>'')});
+  const p=await boot2(newBrowser(),{pre:w=>{w.NexusNative=N}});
+  assert.ok(pal.length>=1);
+  p.ev(`localStorage.setItem(TH,'light');applyTh()`);await p.sleep(30);
+  p.ev(`document.documentElement.dataset.accent='steel'`);await p.sleep(30);
+  const n=pal.length;assert.ok(n>=2);
+  p.ev(`document.documentElement.dataset.accent='clay'`);await p.sleep(30);
+  assert.ok(pal.length>n);assert.equal(pal.at(-1).light,true);p.close()});
+
+await t('the bubble reads its words fresh, follows the palette, and tucks into the screen edge',async()=>{
+  const d=new URL('../android/src/com/nexus/personal/',import.meta.url),b=fs.readFileSync(new URL('BubbleService.java',d),'utf8'),m=fs.readFileSync(new URL('MainActivity.java',d),'utf8');
+  assert.doesNotMatch(b,/getString\(R\.string/);assert.match(b,/Loc\.wrap\(getApplicationContext\(\)\)/);
+  assert.doesNotMatch(b,/setColor\(0xFF161617\)/);assert.match(b,/Pal\.load/);
+  assert.match(b,/private void dock\(\)/);assert.match(b,/private void undock\(\)/);
+  assert.match(m,/public void setPalette\(String json\)/);assert.match(m,/BubbleService\.refresh\(\)/)});
+
 await t('the Android code has a setTheme bridge that colours the window and both system bars',async()=>{
   const j=fs.readFileSync(new URL('../android/src/com/nexus/personal/MainActivity.java',import.meta.url),'utf8');
   assert.match(j,/public void setTheme\(final String theme\)/);assert.match(j,/setStatusBarColor\(bg\)/);assert.match(j,/setNavigationBarColor\(bg\)/);assert.match(j,/rootView\.setBackgroundColor\(bg\)/)});

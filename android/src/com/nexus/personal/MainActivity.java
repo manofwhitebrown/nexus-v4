@@ -377,6 +377,14 @@ public class MainActivity extends Activity {
             });
         }
 
+        /** The page's real colours (theme and accent) so the bubble can match the app. */
+        @JavascriptInterface
+        public void setPalette(String json) {
+            if (json == null || json.length() > 2000) return;
+            getSharedPreferences("nexus_ui", MODE_PRIVATE).edit().putString("palette", json).apply();
+            BubbleService.refresh();
+        }
+
         @JavascriptInterface
         public String inboxPeek() {
             return Inbox.peek(MainActivity.this);
@@ -455,7 +463,10 @@ public class MainActivity extends Activity {
         public void setLang(String v) {
             String before = Loc.get(MainActivity.this);
             Loc.set(MainActivity.this, v);
-            if (!before.equals(Loc.get(MainActivity.this))) NexusWidget.refresh(MainActivity.this);
+            if (!before.equals(Loc.get(MainActivity.this))) {
+                NexusWidget.refresh(MainActivity.this);
+                BubbleService.refresh();      // the bubble's words follow the language at once
+            }
         }
 
         @JavascriptInterface

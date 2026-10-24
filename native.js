@@ -8,8 +8,17 @@ const N=window.NexusNative,APK='https://github.com/manofwhitebrown/nexus-v3.3/re
 if(N){
   /* The window and the system bars belong to Android, not to the page. Tell them which theme the app is in,
      now and every time it changes, so they never stay dark behind a light app (or the other way round). */
-  {const tell=()=>{try{if(typeof N.setTheme==='function')N.setTheme(document.documentElement.dataset.theme==='light'?'light':'dark')}catch(e){}};
-   tell();new MutationObserver(tell).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']})}
+  /* The floating bubble is drawn by Android too, so it gets the page's real colours (theme and accent),
+     read from the CSS variables, and is told again whenever either one changes. */
+  {const root=document.documentElement,
+   palette=()=>{const cs=getComputedStyle(root),probe=document.createElement('i');probe.style.display='none';root.appendChild(probe);
+     const hex=n=>{const v=cs.getPropertyValue(n).trim();if(!v)return '';probe.style.color='';probe.style.color=v;
+       const m=getComputedStyle(probe).color.match(/[\d.]+/g);return m&&m.length>=3?'#'+m.slice(0,3).map(x=>Math.round(+x).toString(16).padStart(2,'0')).join(''):''};
+     const o={light:root.dataset.theme==='light',bg:hex('--bg'),s:hex('--s'),ink:hex('--ink'),mu:hex('--mu'),ac:hex('--ac'),on:hex('--on'),pa:hex('--pa'),dg:hex('--dg')};
+     probe.remove();return JSON.stringify(o)},
+   tell=()=>{try{if(typeof N.setTheme==='function')N.setTheme(root.dataset.theme==='light'?'light':'dark')}catch(e){}
+     try{if(typeof N.setPalette==='function')N.setPalette(palette())}catch(e){}};
+   tell();new MutationObserver(tell).observe(root,{attributes:true,attributeFilter:['data-theme','data-accent']})}
   /* Items from the bubble. Each note goes through the same parser as the capture box, then is confirmed
      back to the app so it is never imported twice. */
   let busy=false;
@@ -58,7 +67,7 @@ settings=function(){prev();if(!dlg.open||$('#nxb'))return;
   const put=h=>{box.innerHTML=h;if(anchor)anchor.before(box);else dlg.append(box)};
   if(N){
     const label={on:'Turn off',off:'Turn on',nopermission:'Allow and turn on'};
-    const note={on:'The bubble is showing. Tap it to write a note. Drag it to the bottom to hide it.',off:'Shows a small Nexus bubble over your other apps. Tap it to write a note without opening Nexus.',nopermission:'Android needs your permission to show the bubble over other apps. Tap the button, switch on "Display over other apps" for Nexus, then come back.'};
+    const note={on:'The bubble is showing. It tucks into the edge of the screen. Tap the small tab to pull it out, then tap it again to write a note. Drag it to the bottom to hide it.',off:'Shows a small Nexus bubble over your other apps. Tap it to write a note without opening Nexus.',nopermission:'Android needs your permission to show the bubble over other apps. Tap the button, switch on "Display over other apps" for Nexus, then come back.'};
     let st=N.bubbleState();
     put(`<h2>Floating bubble</h2><p class="mu" id="nxn">${note[st]||note.off}</p><div class="row2"><button class="btn ${st==='on'?'':'p'}" id="nxt">${label[st]||label.off}</button></div>`);
     const paint=()=>{st=N.bubbleState();const t=$('#nxt'),n=$('#nxn');if(!t||!n)return;t.textContent=label[st]||label.off;t.className='btn '+(st==='on'?'':'p');n.textContent=note[st]||note.off};

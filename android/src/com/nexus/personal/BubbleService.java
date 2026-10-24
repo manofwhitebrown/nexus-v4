@@ -43,6 +43,8 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 import android.widget.TextView;
 
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
@@ -52,6 +54,13 @@ import java.nio.ByteBuffer;
  * Tap it to open a small panel for a note, a voice recording or a screenshot. Drag it anywhere.
  * Drag it to the bottom target to hide it. Everything goes to the Inbox and appears in Nexus the
  * next time the app is opened.
+ *
+ * Resting state: the bubble tucks into the left or right edge of the screen and only a small tab
+ * shows, so it is never in the way. Tap the tab to slide it out, tap it again to open the panel.
+ * It tucks itself back in after a couple of seconds.
+ *
+ * Colours come from the Nexus theme and accent (sent over by native.js) and the text comes from
+ * the language picked in Nexus. Both are read fresh, so changing them in Nexus shows up at once.
  */
 public class BubbleService extends Service {
 
@@ -63,6 +72,11 @@ public class BubbleService extends Service {
     static final String ACTION_STOP = "com.nexus.personal.STOP";
     static final String ACTION_PROJECTION = "com.nexus.personal.PROJECTION";
     static volatile boolean running = false;
+    /** The live service, so the app can tell it that the theme or language changed. */
+    private static volatile BubbleService instance;
+    /** How much of the bubble stays on screen while it is tucked into an edge. */
+    private static final float PEEK_DP = 26f;
+    private static final int TUCK_DELAY = 2500;
     /** Set while a screenshot is waiting for the user to allow screen capture. */
     static volatile boolean shotPending = false;
 
@@ -76,6 +90,19 @@ public class BubbleService extends Service {
     private float density;
     private String kind = "auto";
     private final Handler handler = new Handler();
+
+    // theme + docking
+    private Pal pal;
+    private int side = 1;                 // 1 = right edge, -1 = left edge
+    private boolean docked = false;       // true while tucked into the edge
+    private boolean touching = false;
+    private ValueAnimator slide;
+    private final Runnable dockRun = new Runnable() {
+        @Override
+        public void run() {
+            dock();
+        }
+    };
 
     // voice recording
     private MediaRecorder rec;
@@ -91,6 +118,38 @@ public class BubbleService extends Service {
     private ImageReader reader;
     private Image held;
     private int dpiNow = 320;
+
+    /** Text in the language picked inside Nexus, looked up each time rather than cached at start. */
+    private String s(int id) {
+        return Loc.wrap(getApplicationContext()).getString(id);
+    }
+
+    private String s(int id, Object... args) {
+        return Loc.wrap(getApplicationContext()).getString(id, args);
+    }
+
+    /** Called by the app when the theme, accent or language changes. Safe from any thread. */
+    static void refresh() {
+        final BubbleService svc = instance;
+        if (svc == null) return;
+        svc.handler.post(new Runnable() {
+            @Override
+            public void run() {
+                svc.onLookChanged();
+            }
+        });
+    }
+
+    private void onLookChanged() {
+        if (bubble == null) return;
+        pal = Pal.load(this);
+        if (panel != null) closePanel();   // it is rebuilt with the new colours and words next time
+        bubble.setPal(pal);
+        try {
+            refreshForeground(false);      // the notification text is in the chosen language too
+        } catch (Exception ignored) {
+        }
+    }
 
     static boolean canDraw(Context c) {
         return Build.VERSION.SDK_INT < 23 || Settings.canDrawOverlays(c);
@@ -136,8 +195,10 @@ public class BubbleService extends Service {
             density = getResources().getDisplayMetrics().density;
             wm = (WindowManager) getSystemService(WINDOW_SERVICE);
             measureScreen();
+            pal = Pal.load(this);
             addBubble();
             running = true;
+            instance = this;
         }
         if (proj) {
             startProjection(intent.getIntExtra("code", 0), (Intent) intent.getParcelableExtra("data"));
@@ -151,6 +212,8 @@ public class BubbleService extends Service {
         super.onConfigurationChanged(c);
         if (wm == null || bubble == null) return;
         measureScreen();
+        if (slide != null) slide.cancel();
+        bubbleLp.x = restX(docked);        // stay tucked into the same edge after a rotation
         clamp();
         try {
             wm.updateViewLayout(bubble, bubbleLp);
@@ -162,6 +225,9 @@ public class BubbleService extends Service {
     @Override
     public void onDestroy() {
         running = false;
+        instance = null;
+        handler.removeCallbacks(dockRun);
+        if (slide != null) slide.cancel();
         if (recording) stopRecording(true);
         endProjection();
         try {
@@ -203,7 +269,7 @@ public class BubbleService extends Service {
     private void refreshForeground(boolean wantProjection) {
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         if (Build.VERSION.SDK_INT >= 26) {
-            NotificationChannel ch = new NotificationChannel(CHANNEL, getString(R.string.bubble_channel),
+            NotificationChannel ch = new NotificationChannel(CHANNEL, s(R.string.bubble_channel),
                     NotificationManager.IMPORTANCE_MIN);
             ch.setShowBadge(false);
             nm.createNotificationChannel(ch);
@@ -216,14 +282,14 @@ public class BubbleService extends Service {
         Notification.Builder b = Build.VERSION.SDK_INT >= 26
                 ? new Notification.Builder(this, CHANNEL)
                 : new Notification.Builder(this);
-        String text = recording ? getString(R.string.bubble_recording)
-                : (projection != null ? getString(R.string.bubble_shots_ready) : getString(R.string.bubble_tap));
+        String text = recording ? s(R.string.bubble_recording)
+                : (projection != null ? s(R.string.bubble_shots_ready) : s(R.string.bubble_tap));
         b.setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle(getString(R.string.bubble_title))
+                .setContentTitle(s(R.string.bubble_title))
                 .setContentText(text)
                 .setContentIntent(open)
                 .setOngoing(true)
-                .addAction(0, getString(R.string.bubble_hide), stop);
+                .addAction(0, s(R.string.bubble_hide), stop);
         int type = 0;
         if (Build.VERSION.SDK_INT >= 34) type |= ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE;
         if (recording && Build.VERSION.SDK_INT >= 30) type |= ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE;
@@ -245,7 +311,7 @@ public class BubbleService extends Service {
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(i);
         } catch (Exception e) {
-            toast(getString(R.string.open_nexus_once));
+            toast(s(R.string.open_nexus_once));
         }
     }
 
@@ -259,9 +325,71 @@ public class BubbleService extends Service {
         return g;
     }
 
+    /** Colours taken from the Nexus theme and accent, with the graphite dark look as the fallback. */
+    private static final class Pal {
+        int bg = 0xFF0D0D0E, surface = 0xFF161617, ink = 0xFFECECEA, mu = 0xFF9A9A9F;
+        int accent = 0xFFECECEA, onAccent = 0xFF0D0D0E, primary = 0xFFF6F6F4, danger = 0xFFE8847C;
+        int line, chip, ring;
+
+        static int mix(int a, int b, float t) {
+            int r = Math.round(((a >> 16) & 255) * (1 - t) + ((b >> 16) & 255) * t);
+            int g = Math.round(((a >> 8) & 255) * (1 - t) + ((b >> 8) & 255) * t);
+            int bl = Math.round((a & 255) * (1 - t) + (b & 255) * t);
+            return 0xFF000000 | (r << 16) | (g << 8) | bl;
+        }
+
+        private static int col(JSONObject o, String k, int dflt) {
+            try {
+                String v = o.optString(k, "");
+                return v.length() == 0 ? dflt : (0xFF000000 | android.graphics.Color.parseColor(v));
+            } catch (Exception e) {
+                return dflt;
+            }
+        }
+
+        static Pal load(Context c) {
+            Pal p = new Pal();
+            android.content.SharedPreferences ui = c.getSharedPreferences("nexus_ui", 0);
+            boolean light = ui.getBoolean("light", false);
+            if (light) {
+                p.bg = 0xFFE9E8E4;
+                p.surface = 0xFFF3F2EF;
+                p.ink = 0xFF141415;
+                p.mu = 0xFF5C5C61;
+                p.accent = 0xFF141415;
+                p.onAccent = 0xFFF3F2EF;
+                p.primary = 0xFF2E2E32;
+                p.danger = 0xFFB3261E;
+            }
+            String j = ui.getString("palette", null);
+            if (j != null) {
+                try {
+                    JSONObject o = new JSONObject(j);
+                    // Ignore a palette saved for the other theme; the next change replaces it.
+                    if (o.optBoolean("light", light) == light) {
+                        p.bg = col(o, "bg", p.bg);
+                        p.surface = col(o, "s", p.surface);
+                        p.ink = col(o, "ink", p.ink);
+                        p.mu = col(o, "mu", p.mu);
+                        p.accent = col(o, "ac", p.accent);
+                        p.onAccent = col(o, "on", p.onAccent);
+                        p.primary = col(o, "pa", p.primary);
+                        p.danger = col(o, "dg", p.danger);
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+            p.line = mix(p.surface, p.ink, 0.14f);
+            p.chip = mix(p.surface, p.ink, 0.12f);
+            p.ring = mix(p.surface, p.accent, 0.38f);
+            return p;
+        }
+    }
+
     /**
-     * The Nexus mark on a dark disc: the left half is solid and the right half is only an outline,
-     * like something half hidden. A red dot shows while a voice note is being recorded.
+     * The Nexus mark on a disc in the app's colours: the left half is solid and the right half is only
+     * an outline, like something half hidden. A red dot shows while a voice note is being recorded.
+     * When the bubble is tucked into a screen edge the mark slides toward the part that is still visible.
      */
     private class LogoBubble extends View {
         private final Paint disc = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -271,26 +399,43 @@ public class BubbleService extends Service {
         private final Paint dot = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Path logo = new Path();
         private boolean red = false;
+        private int dockSide = 0;       // 1 = tucked into the right edge, -1 = left
+        private float dockAmt = 0f;     // 0 = fully out, 1 = fully tucked in
 
-        LogoBubble(Context c) {
+        LogoBubble(Context c, Pal p) {
             super(c);
-            disc.setColor(0xFF121214);
             ring.setStyle(Paint.Style.STROKE);
-            ring.setColor(0xFF45454B);
             fill.setStyle(Paint.Style.FILL);
-            fill.setColor(0xFFECECEA);
             line.setStyle(Paint.Style.STROKE);
-            line.setColor(0xFFECECEA);
             line.setStrokeJoin(Paint.Join.MITER);
-            dot.setColor(0xFFE8473C);
-            float[] p = {0, 0, 22, 0, 44.5f, 58, 59, 0, 83, 0, 83, 94, 59, 94, 23, 36, 34, 94, 0, 94};
-            logo.moveTo(p[0], p[1]);
-            for (int i = 2; i < p.length; i += 2) logo.lineTo(p[i], p[i + 1]);
+            setPal(p);
+            float[] q = {0, 0, 22, 0, 44.5f, 58, 59, 0, 83, 0, 83, 94, 59, 94, 23, 36, 34, 94, 0, 94};
+            logo.moveTo(q[0], q[1]);
+            for (int i = 2; i < q.length; i += 2) logo.lineTo(q[i], q[i + 1]);
             logo.close();
+        }
+
+        void setPal(Pal p) {
+            disc.setColor(p.surface);
+            ring.setColor(p.ring);
+            fill.setColor(p.accent);
+            line.setColor(p.accent);
+            dot.setColor(p.danger);
+            invalidate();
         }
 
         void setRecording(boolean on) {
             red = on;
+            invalidate();
+        }
+
+        float amt() {
+            return dockAmt;
+        }
+
+        void setDock(int sideNow, float amt) {
+            dockSide = sideNow;
+            dockAmt = amt;
             invalidate();
         }
 
@@ -301,8 +446,10 @@ public class BubbleService extends Service {
             ring.setStrokeWidth(dp(1));
             c.drawCircle(w / 2f, h / 2f, r - dp(0.5f), ring);
             float lh = h * 0.46f, sc = lh / 94f, lw = 83f * sc;
+            // Centre the mark in the part that is still on screen while the bubble is tucked in.
+            float shift = -dockSide * dockAmt * (w - dp(PEEK_DP)) / 2f;
             c.save();
-            c.translate((w - lw) / 2f, (h - lh) / 2f);
+            c.translate((w - lw) / 2f + shift, (h - lh) / 2f);
             c.scale(sc, sc);
             c.save();
             c.clipRect(-10f, -10f, 41.5f, 104f);
@@ -314,14 +461,16 @@ public class BubbleService extends Service {
             c.drawPath(logo, line);
             c.restore();
             c.restore();
-            if (red) c.drawCircle(w - dp(11), dp(11), dp(5), dot);
+            if (red) {
+                boolean visibleOnLeft = dockSide > 0 && dockAmt > 0.5f;
+                c.drawCircle(visibleOnLeft ? dp(11) : w - dp(11), dp(11), dp(5), dot);
+            }
         }
     }
 
     private void addBubble() {
-        bubble = new LogoBubble(this);
-        bubble.setAlpha(0.96f);
-        bubble.setContentDescription(getString(R.string.bubble_desc));
+        bubble = new LogoBubble(this, pal);
+        bubble.setContentDescription(s(R.string.bubble_desc));
 
         int size = dp(54);
         bubbleLp = new WindowManager.LayoutParams(size, size, overlayType(),
@@ -330,9 +479,16 @@ public class BubbleService extends Service {
                 PixelFormat.TRANSLUCENT);
         bubbleLp.gravity = Gravity.TOP | Gravity.LEFT;
         android.content.SharedPreferences p = getSharedPreferences("nexus", 0);
-        bubbleLp.x = p.getInt("bubble_x", screenW - size - dp(6));
+        // Older versions saved an x position instead of a side.
+        side = p.contains("bubble_side") ? (p.getInt("bubble_side", 1) < 0 ? -1 : 1)
+                : (p.getInt("bubble_x", screenW) + size / 2 < screenW / 2 ? -1 : 1);
         bubbleLp.y = p.getInt("bubble_y", screenH / 3);
+        // Start tucked into the edge so it is not sitting in front of whatever is on screen.
+        docked = true;
+        bubbleLp.x = restX(true);
         clamp();
+        bubble.setDock(side, 1f);
+        bubble.setAlpha(DOCK_ALPHA);
 
         bubble.setOnTouchListener(new View.OnTouchListener() {
             float downX, downY;
@@ -343,6 +499,9 @@ public class BubbleService extends Service {
             public boolean onTouch(View v, MotionEvent e) {
                 switch (e.getActionMasked()) {
                     case MotionEvent.ACTION_DOWN:
+                        touching = true;
+                        handler.removeCallbacks(dockRun);
+                        if (slide != null) slide.cancel();
                         startX = bubbleLp.x;
                         startY = bubbleLp.y;
                         downX = e.getRawX();
@@ -354,6 +513,18 @@ public class BubbleService extends Service {
                         float my = e.getRawY() - downY;
                         if (!moved && Math.hypot(mx, my) > dp(8)) {
                             moved = true;
+                            if (docked) {
+                                // Pull it out from under the finger, then drag it from there.
+                                docked = false;
+                                bubble.setDock(side, 0f);
+                                bubble.setAlpha(OUT_ALPHA);
+                                startX = Math.round(e.getRawX() - bubbleLp.width / 2f);
+                                startY = bubbleLp.y;
+                                downX = e.getRawX();
+                                downY = e.getRawY();
+                                mx = 0;
+                                my = 0;
+                            }
                             showCloseTarget();
                         }
                         if (moved) {
@@ -366,8 +537,16 @@ public class BubbleService extends Service {
                         return true;
                     case MotionEvent.ACTION_UP:
                     case MotionEvent.ACTION_CANCEL:
+                        touching = false;
+                        boolean cancelled = e.getActionMasked() == MotionEvent.ACTION_CANCEL;
                         if (!moved) {
-                            openPanel();
+                            if (cancelled) {
+                                scheduleDock(TUCK_DELAY);
+                            } else if (docked) {
+                                undock();               // first tap: bring it back onto the screen
+                            } else {
+                                openPanel();            // second tap: open the note panel
+                            }
                         } else {
                             boolean hide = nearClose();
                             hideCloseTarget();
@@ -376,7 +555,7 @@ public class BubbleService extends Service {
                                         .putBoolean("bubble_on", false).apply();
                                 stopSelf();
                             } else {
-                                snapToEdge();
+                                settleOnEdge();
                             }
                         }
                         return true;
@@ -388,32 +567,83 @@ public class BubbleService extends Service {
         wm.addView(bubble, bubbleLp);
     }
 
+    private static final float DOCK_ALPHA = 0.72f;
+    private static final float OUT_ALPHA = 0.96f;
+
+    /** Where the bubble's left edge sits: tucked into the screen edge, or fully out beside it. */
+    private int restX(boolean tucked) {
+        int size = bubbleLp.width, margin = dp(6), peek = dp(PEEK_DP);
+        if (side > 0) return tucked ? screenW - peek : screenW - size - margin;
+        return tucked ? -(size - peek) : margin;
+    }
+
     private void clamp() {
-        int size = bubbleLp.width;
-        bubbleLp.x = Math.max(0, Math.min(screenW - size, bubbleLp.x));
+        int size = bubbleLp.width, peek = dp(PEEK_DP);
+        int lo = docked ? -(size - peek) : 0;
+        int hi = docked ? screenW - peek : screenW - size;
+        bubbleLp.x = Math.max(lo, Math.min(hi, bubbleLp.x));
         bubbleLp.y = Math.max(dp(24), Math.min(screenH - size - dp(24), bubbleLp.y));
     }
 
-    private void snapToEdge() {
-        final int from = bubbleLp.x;
-        final int to = (bubbleLp.x + bubbleLp.width / 2 < screenW / 2)
-                ? dp(6) : screenW - bubbleLp.width - dp(6);
-        ValueAnimator a = ValueAnimator.ofInt(from, to);
-        a.setDuration(160);
-        a.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+    /** Slides to x and fades between the tucked and the fully visible look. */
+    private void slideTo(final int toX, final float toAmt) {
+        if (bubble == null) return;
+        if (slide != null) slide.cancel();
+        final int fromX = bubbleLp.x;
+        final float fromAmt = bubble.amt();
+        slide = ValueAnimator.ofFloat(0f, 1f);
+        slide.setDuration(180);
+        slide.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator va) {
                 if (bubble == null) return;
-                bubbleLp.x = (Integer) va.getAnimatedValue();
+                float t = va.getAnimatedFraction();
+                float amt = fromAmt + (toAmt - fromAmt) * t;
+                bubbleLp.x = Math.round(fromX + (toX - fromX) * t);
+                bubble.setDock(side, amt);
+                bubble.setAlpha(OUT_ALPHA + (DOCK_ALPHA - OUT_ALPHA) * amt);
                 try {
                     wm.updateViewLayout(bubble, bubbleLp);
                 } catch (Exception ignored) {
                 }
             }
         });
-        a.start();
+        slide.start();
+    }
+
+    private void scheduleDock(int ms) {
+        handler.removeCallbacks(dockRun);
+        handler.postDelayed(dockRun, ms);
+    }
+
+    /** Tuck the bubble into its edge so only the small tab shows. */
+    private void dock() {
+        if (bubble == null || panel != null || touching || docked) return;
+        docked = true;
+        slideTo(restX(true), 1f);
+        saveSpot();
+    }
+
+    /** Bring it fully out. It tucks itself back in after a moment unless it is used. */
+    private void undock() {
+        if (bubble == null || !docked) return;
+        docked = false;
+        slideTo(restX(false), 0f);
+        scheduleDock(TUCK_DELAY + 1500);
+    }
+
+    /** After a drag: pick the nearer edge, slide to it, then tuck in shortly after. */
+    private void settleOnEdge() {
+        side = (bubbleLp.x + bubbleLp.width / 2 < screenW / 2) ? -1 : 1;
+        docked = false;
+        slideTo(restX(false), 0f);
+        saveSpot();
+        scheduleDock(1200);
+    }
+
+    private void saveSpot() {
         getSharedPreferences("nexus", 0).edit()
-                .putInt("bubble_x", to).putInt("bubble_y", bubbleLp.y).apply();
+                .putInt("bubble_side", side).putInt("bubble_y", bubbleLp.y).apply();
     }
 
     // ---------- hide target ----------
@@ -433,10 +663,10 @@ public class BubbleService extends Service {
         if (closeTarget != null) return;
         closeTarget = new TextView(this);
         closeTarget.setText("\u00D7");
-        closeTarget.setTextColor(0xFFECECEA);
+        closeTarget.setTextColor(pal.ink);
         closeTarget.setTextSize(26);
         closeTarget.setGravity(Gravity.CENTER);
-        closeTarget.setBackground(circle(0xFF2E2E32));
+        closeTarget.setBackground(circle(pal.chip));
         wm.addView(closeTarget, closeLp());
     }
 
@@ -458,7 +688,7 @@ public class BubbleService extends Service {
     }
 
     private void highlightClose(boolean near) {
-        if (closeTarget != null) closeTarget.setBackground(circle(near ? 0xFFE8847C : 0xFF2E2E32));
+        if (closeTarget != null) closeTarget.setBackground(circle(near ? pal.danger : pal.chip));
     }
 
     // ---------- note panel ----------
@@ -496,37 +726,40 @@ public class BubbleService extends Service {
 
     private void styleChip(TextView t, boolean on) {
         GradientDrawable g = new GradientDrawable();
-        g.setColor(on ? 0xFFECECEA : 0xFF2E2E32);
+        g.setColor(on ? pal.accent : pal.chip);
         g.setCornerRadius(dp(6));
         t.setBackground(g);
-        t.setTextColor(on ? 0xFF0D0D0E : 0xFFECECEA);
+        t.setTextColor(on ? pal.onAccent : pal.ink);
     }
 
     private void openPanel() {
         if (panel != null) return;
+        handler.removeCallbacks(dockRun);
+        pal = Pal.load(this);
+        bubble.setPal(pal);
         bubble.setVisibility(View.INVISIBLE);
 
         panel = new Panel(this);
         panel.setOrientation(LinearLayout.VERTICAL);
         panel.setPadding(dp(16), dp(14), dp(16), dp(16));
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(0xFF161617);
+        bg.setColor(pal.surface);
         bg.setCornerRadius(dp(10));
-        bg.setStroke(dp(1), 0xFF2E2E32);
+        bg.setStroke(dp(1), pal.line);
         panel.setBackground(bg);
 
         LinearLayout head = new LinearLayout(this);
         head.setOrientation(LinearLayout.HORIZONTAL);
         head.setGravity(Gravity.CENTER_VERTICAL);
         TextView title = new TextView(this);
-        title.setText(R.string.quick_note);
-        title.setTextColor(0xFFECECEA);
+        title.setText(s(R.string.quick_note));
+        title.setTextColor(pal.ink);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         title.setTextSize(17);
         head.addView(title, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         TextView x = new TextView(this);
-        x.setText(R.string.close);
-        x.setTextColor(0xFF9A9A9F);
+        x.setText(s(R.string.close));
+        x.setTextColor(pal.mu);
         x.setTextSize(14);
         x.setPadding(dp(10), dp(6), dp(2), dp(6));
         x.setOnClickListener(new View.OnClickListener() {
@@ -539,9 +772,9 @@ public class BubbleService extends Service {
         panel.addView(head);
 
         input = new EditText(this);
-        input.setHint(getString(R.string.type_note));
-        input.setHintTextColor(0xFF9A9A9F);
-        input.setTextColor(0xFFECECEA);
+        input.setHint(s(R.string.type_note));
+        input.setHintTextColor(pal.mu);
+        input.setTextColor(pal.ink);
         input.setTextSize(16);
         input.setMinLines(3);
         input.setMaxLines(6);
@@ -550,9 +783,9 @@ public class BubbleService extends Service {
                 | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
         input.setPadding(dp(12), dp(10), dp(12), dp(10));
         GradientDrawable ib = new GradientDrawable();
-        ib.setColor(0xFF0D0D0E);
+        ib.setColor(pal.bg);
         ib.setCornerRadius(dp(6));
-        ib.setStroke(dp(1), 0xFF2E2E32);
+        ib.setStroke(dp(1), pal.line);
         input.setBackground(ib);
         LinearLayout.LayoutParams ilp = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -562,7 +795,7 @@ public class BubbleService extends Service {
         LinearLayout chips = new LinearLayout(this);
         chips.setOrientation(LinearLayout.HORIZONTAL);
         final String[] kinds = {"auto", "note", "task", "idea"};
-        final String[] names = {getString(R.string.kind_auto), getString(R.string.kind_note), getString(R.string.kind_task), getString(R.string.kind_idea)};
+        final String[] names = {s(R.string.kind_auto), s(R.string.kind_note), s(R.string.kind_task), s(R.string.kind_idea)};
         final TextView[] cs = new TextView[kinds.length];
         for (int i = 0; i < kinds.length; i++) {
             final int idx = i;
@@ -590,9 +823,9 @@ public class BubbleService extends Service {
 
         LinearLayout media = new LinearLayout(this);
         media.setOrientation(LinearLayout.HORIZONTAL);
-        recBtn = button(getString(R.string.record_voice), 0xFF2E2E32, 0xFFECECEA);
+        recBtn = button(s(R.string.record_voice), pal.chip, pal.ink);
         recBtn.setTextSize(14);
-        TextView shot = button(getString(R.string.screenshot), 0xFF2E2E32, 0xFFECECEA);
+        TextView shot = button(s(R.string.screenshot), pal.chip, pal.ink);
         shot.setTextSize(14);
         recBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -619,7 +852,7 @@ public class BubbleService extends Service {
 
         final TextView status = new TextView(this);
         statusView = status;
-        status.setTextColor(0xFF9A9A9F);
+        status.setTextColor(pal.mu);
         status.setTextSize(13);
         LinearLayout.LayoutParams slp = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -628,20 +861,20 @@ public class BubbleService extends Service {
 
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
-        TextView save = button(getString(R.string.save), 0xFFF6F6F4, 0xFF0D0D0E);
-        TextView open = button(getString(R.string.open_nexus), 0xFF2E2E32, 0xFFECECEA);
+        TextView save = button(s(R.string.save), pal.primary, pal.onAccent);
+        TextView open = button(s(R.string.open_nexus), pal.chip, pal.ink);
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String text = input.getText().toString().trim();
                 if (text.length() == 0) {
-                    status.setText(getString(R.string.type_first));
+                    status.setText(s(R.string.type_first));
                     return;
                 }
                 if (text.length() > 5000) text = text.substring(0, 5000);
                 Inbox.add(BubbleService.this, text, kind);
                 input.setText("");
-                status.setText(getString(R.string.saved_inbox));
+                status.setText(s(R.string.saved_inbox));
             }
         });
         open.setOnClickListener(new View.OnClickListener() {
@@ -709,7 +942,10 @@ public class BubbleService extends Service {
         input = null;
         recBtn = null;
         statusView = null;
-        if (bubble != null) bubble.setVisibility(View.VISIBLE);
+        if (bubble != null) {
+            bubble.setVisibility(View.VISIBLE);
+            scheduleDock(TUCK_DELAY);
+        }
     }
 
     private void say(String t) {
@@ -728,11 +964,11 @@ public class BubbleService extends Service {
         if (recBtn == null) return;
         if (recording) {
             long sec = (android.os.SystemClock.elapsedRealtime() - recStart) / 1000;
-            recBtn.setText(getString(R.string.stop_fmt, (sec / 60 < 10 ? "0" : "") + (sec / 60) + ":" + (sec % 60 < 10 ? "0" : "") + (sec % 60)));
-            recBtn.setTextColor(0xFFE8847C);
+            recBtn.setText(s(R.string.stop_fmt, (sec / 60 < 10 ? "0" : "") + (sec / 60) + ":" + (sec % 60 < 10 ? "0" : "") + (sec % 60)));
+            recBtn.setTextColor(pal.danger);
         } else {
-            recBtn.setText(R.string.record_voice);
-            recBtn.setTextColor(0xFFECECEA);
+            recBtn.setText(s(R.string.record_voice));
+            recBtn.setTextColor(pal.ink);
         }
     }
 
@@ -749,7 +985,7 @@ public class BubbleService extends Service {
         if (recording) return;
         if (Build.VERSION.SDK_INT >= 23
                 && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            say(getString(R.string.allow_mic));
+            say(s(R.string.allow_mic));
             openAction("mic");
             return;
         }
@@ -770,7 +1006,7 @@ public class BubbleService extends Service {
             recStart = android.os.SystemClock.elapsedRealtime();
             handler.post(tick);
             updateRecUi();
-            say(getString(R.string.recording_on));
+            say(s(R.string.recording_on));
         } catch (Exception e) {
             recording = false;
             try {
@@ -784,7 +1020,7 @@ public class BubbleService extends Service {
             } catch (Exception ignored) {
             }
             updateRecUi();
-            say(getString(R.string.record_blocked));
+            say(s(R.string.record_blocked));
         }
     }
 
@@ -804,11 +1040,11 @@ public class BubbleService extends Service {
         rec = null;
         handler.removeCallbacks(tick);
         if (good && recFile != null && recFile.length() > 0) {
-            Inbox.addMedia(this, "voice", recFile.getName(), getString(R.string.voice_note_title));
-            if (!quiet) say(getString(R.string.saved_inbox));
+            Inbox.addMedia(this, "voice", recFile.getName(), s(R.string.voice_note_title));
+            if (!quiet) say(s(R.string.saved_inbox));
         } else {
             if (recFile != null) recFile.delete();
-            if (!quiet) say(getString(R.string.too_short));
+            if (!quiet) say(s(R.string.too_short));
         }
         recFile = null;
         try {
@@ -823,7 +1059,7 @@ public class BubbleService extends Service {
     private void takeShot() {
         if (projection == null || reader == null) {
             shotPending = true;
-            say(getString(R.string.allow_capture));
+            say(s(R.string.allow_capture));
             openAction("projection");
             return;
         }
@@ -833,7 +1069,10 @@ public class BubbleService extends Service {
             @Override
             public void run() {
                 saveFrame();
-                if (bubble != null) bubble.setVisibility(View.VISIBLE);
+                if (bubble != null) {
+                    bubble.setVisibility(View.VISIBLE);
+                    scheduleDock(TUCK_DELAY);
+                }
             }
         }, 450);
     }
@@ -868,7 +1107,7 @@ public class BubbleService extends Service {
             }
         } catch (Exception e) {
             endProjection();
-            toast(getString(R.string.capture_failed));
+            toast(s(R.string.capture_failed));
         }
     }
 
@@ -919,7 +1158,7 @@ public class BubbleService extends Service {
     private void saveFrame() {
         Image im = held;
         if (im == null) {
-            toast(getString(R.string.no_picture));
+            toast(s(R.string.no_picture));
             return;
         }
         try {
@@ -948,18 +1187,18 @@ public class BubbleService extends Service {
                         @Override
                         public void run() {
                             if (done) {
-                                Inbox.addMedia(BubbleService.this, "screenshot", out.getName(), getString(R.string.screenshot));
-                                toast(getString(R.string.shot_saved));
+                                Inbox.addMedia(BubbleService.this, "screenshot", out.getName(), s(R.string.screenshot));
+                                toast(s(R.string.shot_saved));
                             } else {
                                 out.delete();
-                                toast(getString(R.string.shot_save_failed));
+                                toast(s(R.string.shot_save_failed));
                             }
                         }
                     });
                 }
             }).start();
         } catch (Exception e) {
-            toast(getString(R.string.shot_failed));
+            toast(s(R.string.shot_failed));
         }
     }
 
