@@ -19,6 +19,9 @@ if(N){
    tell=()=>{try{if(typeof N.setTheme==='function')N.setTheme(root.dataset.theme==='light'?'light':'dark')}catch(e){}
      try{if(typeof N.setPalette==='function')N.setPalette(palette())}catch(e){}};
    tell();new MutationObserver(tell).observe(root,{attributes:true,attributeFilter:['data-theme','data-accent']})}
+  /* The phone's Back button asks the page first: if a sheet (Capture, Add task, Settings...) is open, close it
+     and stay in the app. The PIN lock screen is left alone so Back cannot be used to get past it. */
+  window.nxBack=()=>{const l=document.getElementById('lock');if(l&&l.open)return false;if(dlg.open){dlg.close();return true}return false};
   /* Items from the bubble. Each note goes through the same parser as the capture box, then is confirmed
      back to the app so it is never imported twice. */
   let busy=false;

@@ -141,6 +141,15 @@ await t('the bubble reads its words fresh, follows the palette, and tucks into t
   assert.match(b,/private void dock\(\)/);assert.match(b,/private void undock\(\)/);
   assert.match(m,/public void setPalette\(String json\)/);assert.match(m,/BubbleService\.refresh\(\)/)});
 
+await t('the phone Back button closes an open sheet first instead of leaving the app',async()=>{
+  const p=await boot2(newBrowser(),{pre:w=>{w.NexusNative=new Proxy({},{get:()=>(()=>'')})}});
+  assert.equal(p.ev(`window.nxBack()`),false);
+  p.ev(`A.cap()`);await p.sleep(60);assert.equal(p.w.document.querySelector('#dlg').open,true);
+  assert.equal(p.ev(`window.nxBack()`),true);assert.equal(p.w.document.querySelector('#dlg').open,false);
+  assert.equal(p.ev(`window.nxBack()`),false);
+  const j=fs.readFileSync(new URL('../android/src/com/nexus/personal/MainActivity.java',import.meta.url),'utf8');
+  assert.match(j,/window\.nxBack&&window\.nxBack\(\)/);p.close()});
+
 await t('the Android code has a setTheme bridge that colours the window and both system bars',async()=>{
   const j=fs.readFileSync(new URL('../android/src/com/nexus/personal/MainActivity.java',import.meta.url),'utf8');
   assert.match(j,/public void setTheme\(final String theme\)/);assert.match(j,/setStatusBarColor\(bg\)/);assert.match(j,/setNavigationBarColor\(bg\)/);assert.match(j,/rootView\.setBackgroundColor\(bg\)/)});

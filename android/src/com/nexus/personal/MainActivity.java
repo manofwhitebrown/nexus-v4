@@ -202,9 +202,25 @@ public class MainActivity extends Activity {
         goBackOrClose();
     }
 
+    /**
+     * Back first closes whatever sheet is open in the page (Capture, Add task, Settings, ...). Those sheets
+     * are dialogs that never touch the page history, so without this Back left the app instead.
+     * Only when nothing is open does it go back in history, and only then does it leave the app.
+     */
     private void goBackOrClose() {
-        if (web != null && web.canGoBack()) web.goBack();
-        else finish();
+        if (web == null) {
+            finish();
+            return;
+        }
+        web.evaluateJavascript("(function(){try{return window.nxBack&&window.nxBack()?1:0}catch(e){return 0}})()",
+                new android.webkit.ValueCallback<String>() {
+                    @Override
+                    public void onReceiveValue(String v) {
+                        if ("1".equals(v)) return;      // the page closed a sheet
+                        if (web != null && web.canGoBack()) web.goBack();
+                        else finish();
+                    }
+                });
     }
 
     @Override
