@@ -238,6 +238,17 @@ await t('a tick from the widget or a reminder completes the task, and widget qui
   p.w.__inbox=[{k:'done',id,t:'',ts:1},{k:'done',id:'does-not-exist',t:'',ts:2},{k:'task',t:'call Sam tomorrow at 5pm',ts:3}];
   await p.w.nxInbox();assert.equal(p.ev(`get('${id}').done`),true);
   const n=JSON.parse(p.ev(`JSON.stringify(D.items.filter(i=>i.title.startsWith('call Sam')))`));assert.equal(n.length,1);assert.equal(n[0].tm,'17:00');assert.equal(p.w.__inbox.length,0,'the inbox is acknowledged');p.close()});
+await t('files shared to the Android app arrive as items: a photo and a PDF are saved, and an unreadable file is skipped',async()=>{
+  const png='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',pdf='data:application/pdf;base64,JVBERi0xLjQK';
+  const br=newBrowser(),p=await boot(br,{pre:stub({inboxMedia:n=>n==='a.png'?png:n==='b.pdf'?pdf:''})});
+  p.w.fetch=async u=>{const m=/^data:([^;]+);base64,(.*)$/.exec(u);return{blob:async()=>new p.w.Blob([Buffer.from(m[2],'base64')],{type:m[1]})}}; /* the test browser has no real fetch */
+  p.w.__inbox=[{k:'shared',f:'a.png',t:'holiday photo.png',ts:1},{k:'shared',f:'b.pdf',t:'notes.pdf',ts:2},{k:'shared',f:'gone.bin',t:'missing.bin',ts:3}];
+  await p.w.nxInbox();
+  const L=JSON.parse(p.ev(`JSON.stringify(D.items.filter(i=>i.tags.includes('shared')).map(i=>({t:i.title,k:i.media&&i.media.kind,m:i.media&&i.media.mime,n:i.media&&i.media.name})))`));
+  assert.equal(L.length,2,'the missing file is skipped, not turned into an empty item');
+  const a=L.find(x=>x.k==='photo'),f=L.find(x=>x.k==='file');
+  assert.ok(a&&a.m==='image/png'&&a.n==='holiday photo.png'&&a.t==='holiday photo');assert.ok(f&&f.m==='application/pdf'&&f.n==='notes.pdf');
+  assert.equal(p.w.__inbox.length,0,'the inbox is acknowledged');p.close()});
 await t('the widget list and the reminders are sent to Android and kept current',async()=>{
   const br=newBrowser(),p=await boot(br,{pre:stub()}),td=p.ev('dk()'),tmr=p.ev('addD(1)');
   add(p,{title:'Overdue thing',due:p.ev('addD(-3)')});const a=add(p,{title:'Tomorrow 9',due:tmr}),b=add(p,{title:'Tomorrow 8',due:tmr}),done=add(p,{title:'Done one',due:tmr});

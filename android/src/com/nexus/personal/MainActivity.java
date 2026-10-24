@@ -178,13 +178,129 @@ public class MainActivity extends Activity {
         });
 
         web.loadUrl(startUrl(getIntent()));
+        if (b == null) importShared(getIntent()); // not again after the system recreates the activity
+    }
+
+    /**
+     * Files shared to Nexus from other apps. Each one is copied into the same inbox the bubble uses, then the
+     * web app saves it as an item. The copy runs off the main thread; Android keeps read access to the shared
+     * address while this activity is alive.
+     */
+    private void importShared(final Intent i) {
+        if (i == null) return;
+        String act = i.getAction();
+        final ArrayList<Uri> uris = new ArrayList<Uri>();
+        if (Intent.ACTION_SEND.equals(act)) {
+            Uri u = (Uri) i.getParcelableExtra(Intent.EXTRA_STREAM);
+            if (u != null) uris.add(u);
+        } else if (Intent.ACTION_SEND_MULTIPLE.equals(act)) {
+            ArrayList<Uri> l = i.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+            if (l != null) uris.addAll(l);
+        }
+        if (uris.isEmpty()) return;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int n = 0;
+                for (Uri u : uris) {
+                    if (n++ >= 20) break;
+                    copyShared(u);
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        kickInbox();
+                    }
+                });
+            }
+        }).start();
+    }
+
+    /** Ask the page to read the inbox now, and once more shortly after in case it was still starting. */
+    private void kickInbox() {
+        if (web == null) return;
+        web.evaluateJavascript("window.nxInbox&&window.nxInbox()", null);
+        web.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (web != null) web.evaluateJavascript("window.nxInbox&&window.nxInbox()", null);
+            }
+        }, 1800);
+    }
+
+    private void copyShared(Uri u) {
+        InputStream in = null;
+        OutputStream out = null;
+        File dest = null;
+        try {
+            String shown = null;
+            Cursor c = null;
+            try {
+                c = getContentResolver().query(u, new String[]{android.provider.OpenableColumns.DISPLAY_NAME},
+                        null, null, null);
+                if (c != null && c.moveToFirst()) shown = c.getString(0);
+            } catch (Exception ignored) {
+            } finally {
+                if (c != null) c.close();
+            }
+            if (shown == null || shown.length() == 0) shown = u.getLastPathSegment();
+            if (shown == null || shown.length() == 0) shown = "shared";
+            shown = shown.replaceAll("[^A-Za-z0-9._ -]", "_");
+            if (shown.length() > 60) shown = shown.substring(shown.length() - 60);
+            String ext = "";
+            int dot = shown.lastIndexOf('.');
+            if (dot >= 0 && shown.length() - dot <= 6) ext = shown.substring(dot).toLowerCase(java.util.Locale.US);
+            else {
+                String t = getContentResolver().getType(u);
+                String e = t == null ? null : android.webkit.MimeTypeMap.getSingleton().getExtensionFromMimeType(t);
+                if (e != null) {
+                    ext = "." + e;
+                    shown = shown + ext;
+                }
+            }
+            dest = new File(Inbox.mediaDir(this), "share-" + System.currentTimeMillis() + "-"
+                    + (int) (Math.random() * 1000) + ext);
+            in = getContentResolver().openInputStream(u);
+            if (in == null) return;
+            out = new FileOutputStream(dest);
+            byte[] buf = new byte[16384];
+            long total = 0;
+            int r;
+            while ((r = in.read(buf)) > 0) {
+                total += r;
+                if (total > 25L * 1024 * 1024) { // same limit the inbox reader uses
+                    dest.delete();
+                    return;
+                }
+                out.write(buf, 0, r);
+            }
+            out.close();
+            out = null;
+            Inbox.addShared(this, dest.getName(), shown);
+            dest = null;
+        } catch (Exception e) {
+            if (dest != null) dest.delete();
+        } finally {
+            try {
+                if (in != null) in.close();
+            } catch (Exception ignored) {
+            }
+            try {
+                if (out != null) out.close();
+            } catch (Exception ignored) {
+            }
+        }
     }
 
     @Override
     protected void onNewIntent(Intent i) {
         super.onNewIntent(i);
         setIntent(i);
-        if (Intent.ACTION_SEND.equals(i.getAction()) || i.hasExtra("path")) web.loadUrl(startUrl(i));
+        if (Intent.ACTION_SEND.equals(i.getAction()) || i.hasExtra("path")) {
+            // A shared file has no text, so startUrl gives the plain app address; do not reload over open work.
+            if (i.getStringExtra(Intent.EXTRA_TEXT) != null || i.hasExtra("path")) web.loadUrl(startUrl(i));
+        }
+        importShared(i);
     }
 
     @Override

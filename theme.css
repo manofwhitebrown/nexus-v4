@@ -217,4 +217,4 @@ nav button[aria-current=page]{color:var(--ac)}
 
 /* Settings gear: always reachable in the top-right corner of the sticky header, on every tab.
    order puts it after the sound button so it sits in the very corner. */
-.nxg{order:99;margin-right:-6px;color:var(--ink)}
+.nxgear{order:99;margin-right:-8px;color:var(--ink)}

@@ -97,6 +97,7 @@ Play needs a signed Android App Bundle (`.aab`), not the debug-signed APK above,
 
 - **Home-screen widget.** Long-press the home screen, choose Widgets, then Nexus. It shows your next tasks with a tick for each, and a **+ Add** button. Ticks are applied the next time Nexus opens.
 - **Quick add.** The widget's **+ Add**, the **Quick note** tile in the notification shade (edit the tiles to add it) and the **Quick add** launcher shortcut (long-press the app icon) all open a small box that also works over the lock screen. Words like "tomorrow at 5pm" are understood when Nexus next opens.
+- **Share to Nexus.** In any app, Share > Nexus. Text becomes a note; photos, audio, video, PDFs, text files and Word or Excel files are copied into the app and saved as items tagged `shared` (up to 25 MB each, 20 at a time).
 - **Plan day** is a second launcher shortcut that opens the Plan screen.
 - **Reminders.** A task with a start time rings at that time with a **Done** button, even when Nexus is closed. Android may deliver one a few minutes late to save battery; Nexus uses inexact alarms on purpose so no special permission is needed. Reminders are put back after a restart or an update.
 - **Dictation.** In Capture, **Dictate** opens Android's speech screen (English, Hindi or Telugu). Which languages work depends on the speech service on your phone.

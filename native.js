@@ -35,12 +35,22 @@ if(N){
     const title=(shot?'Screenshot ':'Voice note ')+when(o.ts);
     return !!addItem({type:'note',title,body:'',tags:['bubble',shot?'screenshot':'voice'],project:null,due:null,promise:false,
       media:{id,kind:shot?'photo':'voice',name:(title+(shot?'.jpg':'.m4a')).slice(0,80),mime:shot?'image/jpeg':'audio/mp4'}})};
+  /* A file shared to Nexus from another app: same shapes as the web share target (v42.js). */
+  const shared=async o=>{
+    if(typeof N.inboxMedia!=='function'||!o.f)return false;
+    const d=N.inboxMedia(o.f);if(!d)return false;
+    const blob=await (await fetch(d)).blob(),mime=blob.type||'application/octet-stream',id=uid();
+    const name=String(o.t||'shared').slice(0,80)||'shared';
+    await bput(id,blob);
+    return !!addItem({type:'note',title:name.replace(/\.[^.]{1,5}$/,'')||name,body:'',url:'',tags:['shared'],project:null,due:null,promise:false,
+      media:{id,kind:/^image\//.test(mime)?'photo':/^audio\//.test(mime)?'voice':/^video\//.test(mime)?'video':'file',name,mime}})};
   window.nxInbox=async()=>{if(busy)return;busy=true;try{
     let a=[];try{a=JSON.parse(N.inboxPeek()||'[]')}catch(e){}
     if(!Array.isArray(a)||!a.length)return;
     let notes=0,files=0,ticks=0;
     for(const o of a){
       if(o&&(o.k==='screenshot'||o.k==='voice')){try{if(await media(o))files++}catch(e){}continue}
+      if(o&&o.k==='shared'){try{if(await shared(o))files++}catch(e){}continue}
       /* A tick from the home-screen widget or a reminder's Done button. */
       if(o&&o.k==='done'){const it=get(String(o.id||''));if(it&&it.type==='task'&&!it.done){upd(it.id,{done:true});ticks++}continue}
       const t=String(o&&o.t||'').trim().slice(0,5000);if(!t)continue;

@@ -64,6 +64,33 @@ final class Inbox {
         }
     }
 
+    /** A file shared from another app. The web app turns it into a photo, voice, video or file item. */
+    static synchronized void addShared(Context c, String fileName, String shownName) {
+        try {
+            JSONArray a = read(c);
+            JSONObject o = new JSONObject();
+            o.put("t", shownName);
+            o.put("k", "shared");
+            o.put("f", fileName);
+            o.put("ts", System.currentTimeMillis());
+            a.put(o);
+            write(c, a);
+        } catch (Exception ignored) {
+        }
+    }
+
+    private static String mimeOf(String name) {
+        if (name.endsWith(".jpg")) return "image/jpeg";
+        if (name.endsWith(".m4a")) return "audio/mp4";
+        int dot = name.lastIndexOf('.');
+        if (dot >= 0) {
+            String m = android.webkit.MimeTypeMap.getSingleton()
+                    .getMimeTypeFromExtension(name.substring(dot + 1).toLowerCase(java.util.Locale.US));
+            if (m != null) return m;
+        }
+        return "application/octet-stream";
+    }
+
     /** The file as a data URL for the web app. Empty if it is missing or too large. */
     static String mediaData(Context c, String name) {
         try {
@@ -75,7 +102,7 @@ final class Inbox {
             int n;
             while ((n = in.read(buf)) > 0) b.write(buf, 0, n);
             in.close();
-            String mime = name.endsWith(".jpg") ? "image/jpeg" : "audio/mp4";
+            String mime = mimeOf(name);
             return "data:" + mime + ";base64," + Base64.encodeToString(b.toByteArray(), Base64.NO_WRAP);
         } catch (Exception e) {
             return "";
